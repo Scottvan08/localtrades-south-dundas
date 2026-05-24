@@ -21,3 +21,9 @@ http://localhost:8000/
 ## GitHub Pages
 
 This prototype is static and can be deployed directly with GitHub Pages from the `main` branch.
+
+## Development Workflow
+
+After every development update, verify locally, commit the change, and push it to GitHub so the GitHub Pages version stays current.
+
+See `DEVELOPMENT.md`.
