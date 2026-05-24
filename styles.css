@@ -1186,63 +1186,6 @@ h2 {
   display: none;
 }
 
-.tour-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 1040;
-  background: rgba(5, 18, 15, 0.42);
-  pointer-events: none;
-}
-
-.tour-card {
-  position: fixed;
-  z-index: 1120;
-  width: min(370px, calc(100vw - 28px));
-  padding: 16px;
-  background: #ffffff;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: 0 24px 80px rgba(7, 20, 17, 0.34);
-}
-
-.tour-card h2 {
-  margin-top: 8px;
-  font-size: 1.35rem;
-}
-
-.tour-card p {
-  margin: 8px 0 0;
-  color: var(--muted);
-  line-height: 1.48;
-}
-
-.tour-progress,
-.tour-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.tour-progress span {
-  color: var(--green);
-  font-size: 0.76rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.tour-actions {
-  margin-top: 16px;
-}
-
-.tour-highlight {
-  position: relative;
-  z-index: 1080;
-  border-radius: var(--radius);
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.9), 0 0 0 8px rgba(19, 122, 70, 0.72), 0 20px 55px rgba(5, 18, 15, 0.28);
-}
-
 .quote-dialog {
   z-index: 1200;
   width: min(460px, calc(100% - 28px));
@@ -1348,30 +1291,6 @@ h2 {
   .desktop-nav,
   .topbar > [data-claim-link] {
     display: none;
-  }
-
-  .topbar .tour-start-button {
-    display: inline-flex;
-    flex: 0 0 42px;
-    margin-left: auto;
-    width: 42px;
-    min-width: 42px;
-    height: 42px;
-    min-height: 42px;
-    color: #ffffff;
-    background: var(--green);
-    border-color: var(--green);
-    box-shadow: 0 10px 22px rgba(19, 122, 70, 0.22);
-    padding: 0;
-    overflow: hidden;
-    gap: 0;
-    font-size: 0;
-    line-height: 1;
-  }
-
-  .topbar .tour-start-button svg {
-    width: 18px;
-    height: 18px;
   }
 
   .brand small {
@@ -1521,19 +1440,6 @@ h2 {
     border-radius: 22px;
     box-shadow: 0 20px 44px rgba(16, 27, 24, 0.2);
     backdrop-filter: blur(18px);
-  }
-
-  .tour-card {
-    left: 14px !important;
-    right: 14px;
-    bottom: 92px;
-    top: auto !important;
-    width: auto;
-  }
-
-  .tour-actions {
-    display: grid;
-    grid-template-columns: 0.8fr 1fr;
   }
 
   .mobile-tabbar a,

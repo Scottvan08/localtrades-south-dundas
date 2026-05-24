@@ -14,13 +14,6 @@ const state = {
   categoriesExpanded: false,
 };
 
-const tourState = {
-  active: false,
-  index: 0,
-  highlighted: null,
-  placementTimer: null,
-};
-
 const imageByCategory = {
   Plumbing: "https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=900&q=80",
   HVAC: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=900&q=80",
@@ -124,54 +117,6 @@ const townCenters = {
   "Riverside Heights": { lat: 44.9288, lng: -75.1398 },
   "Dixons Corners": { lat: 44.8679, lng: -75.2576 },
 };
-
-const tourSteps = [
-  {
-    selector: ".search-panel",
-    title: "Start With A Job",
-    body: "Search by service and area so residents can answer the real rural question: who can help me here?",
-  },
-  {
-    selector: "#categoryGrid",
-    title: "Popular Services",
-    body: "These shortcuts make common needs fast: plumbing, electrical, roofing, septic, snow removal, HVAC, and more.",
-  },
-  {
-    selector: ".map-card",
-    title: "Real Map View",
-    body: "The map now uses live tiles, clustered markers, popups, and service-radius circles instead of a mock graphic.",
-  },
-  {
-    selector: ".results-panel",
-    title: "Searchable Directory",
-    body: "The result list is powered by the seed CSV, and it stays in sync with filters and map markers.",
-  },
-  {
-    selector: ".profile-section",
-    title: "Contractor Profiles",
-    body: "Each profile shows category, service area, contact details, trust signals, recommendations, and local job activity.",
-  },
-  {
-    selector: ".profile-section [data-open-quote]",
-    title: "Quote Requests",
-    body: "Residents can start a request from a profile, which becomes the future lead-generation path for paid members.",
-  },
-  {
-    selector: ".profile-section [data-claim-link]",
-    title: "Claim Listings",
-    body: "Businesses can claim a public listing, verify ownership, correct details, and later manage service areas and visibility.",
-  },
-  {
-    selector: "#reviews",
-    title: "Local Reviews",
-    body: "This is the trust layer: recommendations from nearby residents, not just generic star ratings.",
-  },
-  {
-    selector: "#pros",
-    title: "Contractor Dashboard",
-    body: "The pro view previews the membership value: leads, profile views, response rate, reviews, and profile strength.",
-  },
-];
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
@@ -700,10 +645,6 @@ function wireEvents() {
     const filterButton = event.target.closest("[data-filter-button]");
     const dashboardButton = event.target.closest("[data-dashboard-link]");
     const viewButton = event.target.closest("[data-view]");
-    const tourStartButton = event.target.closest("[data-tour-start]");
-    const tourNextButton = event.target.closest("[data-tour-next]");
-    const tourPrevButton = event.target.closest("[data-tour-prev]");
-    const tourCloseButton = event.target.closest("[data-tour-close]");
 
     if (categoryButton) {
       state.category = categoryButton.dataset.category === state.category ? "" : categoryButton.dataset.category;
@@ -764,34 +705,10 @@ function wireEvents() {
       document.querySelector(target)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
       if (state.map) setTimeout(() => state.map.invalidateSize(), 240);
     }
-
-    if (tourStartButton) {
-      startTour();
-    }
-
-    if (tourNextButton) {
-      nextTourStep();
-    }
-
-    if (tourPrevButton) {
-      previousTourStep();
-    }
-
-    if (tourCloseButton) {
-      endTour();
-    }
   });
 
   window.addEventListener("resize", () => {
-    if (tourState.active) positionTourCard();
     if (state.map) state.map.invalidateSize();
-  });
-
-  window.addEventListener("keydown", (event) => {
-    if (!tourState.active) return;
-    if (event.key === "Escape") endTour();
-    if (event.key === "ArrowRight") nextTourStep();
-    if (event.key === "ArrowLeft") previousTourStep();
   });
 }
 
@@ -818,113 +735,6 @@ function restoreHashPosition() {
     target.scrollIntoView({ behavior: "auto", block: "start" });
     if (state.map) state.map.invalidateSize();
   }, 250);
-}
-
-function startTour() {
-  closeOpenDialogs();
-  tourState.active = true;
-  tourState.index = 0;
-  document.body.classList.add("tour-active");
-  showTourStep();
-}
-
-function nextTourStep() {
-  if (!tourState.active) return;
-  if (tourState.index >= tourSteps.length - 1) {
-    endTour();
-    return;
-  }
-
-  tourState.index += 1;
-  showTourStep();
-}
-
-function previousTourStep() {
-  if (!tourState.active || tourState.index === 0) return;
-  tourState.index -= 1;
-  showTourStep();
-}
-
-function showTourStep() {
-  const step = tourSteps[tourState.index];
-  const target = document.querySelector(step.selector);
-  const card = $("#tourCard");
-  const scrim = $("#tourScrim");
-
-  clearTourHighlight();
-
-  if (!target || !card || !scrim) {
-    nextTourStep();
-    return;
-  }
-
-  $("#tourStepLabel").textContent = `Step ${tourState.index + 1} of ${tourSteps.length}`;
-  $("#tourTitle").textContent = step.title;
-  $("#tourBody").textContent = step.body;
-  $('[data-tour-prev]').disabled = tourState.index === 0;
-  $('[data-tour-next]').innerHTML =
-    tourState.index === tourSteps.length - 1
-      ? 'Done <i data-lucide="check"></i>'
-      : 'Next <i data-lucide="arrow-right"></i>';
-
-  scrim.hidden = false;
-  card.hidden = false;
-  target.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
-
-  window.clearTimeout(tourState.placementTimer);
-  tourState.placementTimer = window.setTimeout(() => {
-    tourState.highlighted = target;
-    target.classList.add("tour-highlight");
-    positionTourCard(target);
-    if (state.map) state.map.invalidateSize();
-    initIcons();
-  }, 420);
-}
-
-function positionTourCard(target = tourState.highlighted) {
-  const card = $("#tourCard");
-  if (!card || !target || card.hidden) return;
-
-  if (window.innerWidth <= 760) {
-    card.style.left = "";
-    card.style.top = "";
-    return;
-  }
-
-  const rect = target.getBoundingClientRect();
-  const cardRect = card.getBoundingClientRect();
-  const margin = 16;
-  const left = clamp(rect.left + rect.width / 2 - cardRect.width / 2, margin, window.innerWidth - cardRect.width - margin);
-  const below = rect.bottom + margin;
-  const above = rect.top - cardRect.height - margin;
-  const top = below + cardRect.height < window.innerHeight ? below : Math.max(margin, above);
-
-  card.style.left = `${left}px`;
-  card.style.top = `${top}px`;
-}
-
-function endTour() {
-  window.clearTimeout(tourState.placementTimer);
-  tourState.active = false;
-  document.body.classList.remove("tour-active");
-  clearTourHighlight();
-  $("#tourScrim").hidden = true;
-  $("#tourCard").hidden = true;
-}
-
-function clearTourHighlight() {
-  if (tourState.highlighted) {
-    tourState.highlighted.classList.remove("tour-highlight");
-    tourState.highlighted = null;
-  }
-}
-
-function closeOpenDialogs() {
-  $$("dialog[open]").forEach((dialog) => dialog.close());
-}
-
-function clamp(value, min, max) {
-  return Math.min(Math.max(value, min), max);
 }
 
 function escapeHtml(value) {

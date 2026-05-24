@@ -33,10 +33,6 @@
           </button>
         </nav>
 
-        <button class="ghost-button compact tour-start-button" type="button" data-tour-start>
-          <i data-lucide="sparkles"></i>
-          Tour
-        </button>
         <button class="primary-button compact" type="button" data-claim-link>
           <i data-lucide="badge-check"></i>
           Claim Profile
@@ -350,28 +346,6 @@
         <button type="button" data-claim-link><i data-lucide="user"></i><span>Claim</span></button>
       </nav>
     </div>
-
-    <div class="tour-scrim" id="tourScrim" hidden></div>
-    <aside class="tour-card" id="tourCard" hidden aria-live="polite" aria-labelledby="tourTitle">
-      <div class="tour-progress">
-        <span id="tourStepLabel">Step 1 of 8</span>
-        <button class="icon-button" type="button" data-tour-close aria-label="Close tour">
-          <i data-lucide="x"></i>
-        </button>
-      </div>
-      <h2 id="tourTitle">Welcome</h2>
-      <p id="tourBody">A quick first glance at the prototype.</p>
-      <div class="tour-actions">
-        <button class="secondary-button compact" type="button" data-tour-prev>
-          <i data-lucide="arrow-left"></i>
-          Back
-        </button>
-        <button class="primary-button compact" type="button" data-tour-next>
-          Next
-          <i data-lucide="arrow-right"></i>
-        </button>
-      </div>
-    </aside>
 
     <dialog class="quote-dialog" id="quoteDialog">
       <form method="dialog" class="quote-form">
