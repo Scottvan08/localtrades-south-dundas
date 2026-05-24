@@ -802,7 +802,7 @@ h2 {
 
 .map-popup {
   display: grid;
-  gap: 5px;
+  gap: 7px;
 }
 
 .map-popup strong {
@@ -819,6 +819,34 @@ h2 {
   font-size: 0.78rem;
   font-style: normal;
   font-weight: 800;
+}
+
+.map-popup-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.map-popup-actions button,
+.map-popup-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 10px;
+  color: #ffffff;
+  background: var(--green);
+  border: 0;
+  border-radius: var(--radius);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.map-popup-actions a {
+  color: var(--green);
+  background: var(--green-soft);
 }
 
 .map-summary {

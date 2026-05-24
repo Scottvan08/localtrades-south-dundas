@@ -430,12 +430,15 @@ function renderResults() {
   initIcons();
 }
 
-function selectListing(row) {
+function selectListing(row, options = {}) {
   if (!row) return;
   state.selected = row;
   updateProfile(row);
   renderResults();
-  focusMapOn(row);
+  drawServiceCircle(row);
+  updateMarkerIcons();
+  if (options.openMapPopup) openMapPopup(row, { pan: options.panMap });
+  if (options.scrollTo === "profile") scrollToProfile();
   initIcons();
 }
 
@@ -505,16 +508,10 @@ function updateMap() {
       title: row.name,
     });
 
-    marker.bindPopup(`
-      <div class="map-popup">
-        <strong>${escapeHtml(row.name)}</strong>
-        <span>${escapeHtml(row.displayCategory)} · ${escapeHtml(row.town || "South Dundas")}</span>
-        <em>${escapeHtml(row.mapLabel)}</em>
-      </div>
-    `);
+    marker.bindPopup(mapPopupHtml(row));
 
     marker.on("click", () => {
-      selectListing(row);
+      selectListing(row, { openMapPopup: true });
     });
 
     marker.addTo(state.mapLayer);
@@ -534,15 +531,38 @@ function updateMap() {
   setTimeout(() => state.map.invalidateSize(), 80);
 }
 
+function mapPopupHtml(row) {
+  const phoneHref = row.phone ? row.phone.replace(/[^0-9+]/g, "") : "";
+  return `
+    <div class="map-popup">
+      <strong>${escapeHtml(row.name)}</strong>
+      <span>${escapeHtml(row.displayCategory)} &middot; ${escapeHtml(row.town || "South Dundas")}</span>
+      <span>No local reviews yet</span>
+      <em>${escapeHtml(row.mapLabel)}</em>
+      <span class="map-popup-actions">
+        <button type="button" data-popup-profile="${escapeHtml(row.id)}">View Profile</button>
+        ${phoneHref ? `<a href="tel:${escapeHtml(phoneHref)}">Call</a>` : ""}
+      </span>
+    </div>
+  `;
+}
+
 function focusMapOn(row) {
   if (!state.map || !row) return;
 
   drawServiceCircle(row);
   updateMarkerIcons();
+  openMapPopup(row, { pan: true });
+}
+
+function openMapPopup(row, options = {}) {
+  if (!state.map || !row) return;
 
   const marker = state.markers.get(row.id);
   if (marker) {
-    state.map.setView([row.latitude, row.longitude], Math.max(state.map.getZoom(), 11), { animate: true });
+    if (options.pan) {
+      state.map.setView([row.latitude, row.longitude], Math.max(state.map.getZoom(), 11), { animate: true });
+    }
     if (state.mapLayer.zoomToShowLayer) {
       state.mapLayer.zoomToShowLayer(marker, () => marker.openPopup());
     } else {
@@ -641,6 +661,13 @@ function wireEvents() {
     const filterButton = event.target.closest("[data-filter-button]");
     const dashboardButton = event.target.closest("[data-dashboard-link]");
     const viewButton = event.target.closest("[data-view]");
+    const popupProfileButton = event.target.closest("[data-popup-profile]");
+
+    if (popupProfileButton) {
+      const row = state.rows.find((item) => item.id === popupProfileButton.dataset.popupProfile);
+      selectListing(row, { scrollTo: "profile" });
+      return;
+    }
 
     if (categoryButton) {
       state.category = categoryButton.dataset.category === state.category ? "" : categoryButton.dataset.category;
@@ -653,8 +680,7 @@ function wireEvents() {
 
     if (listingButton) {
       const row = state.rows.find((item) => item.id === listingButton.dataset.listingId);
-      selectListing(row);
-      if (window.innerWidth < 760) $("#profile").scrollIntoView({ behavior: "smooth", block: "start" });
+      selectListing(row, { scrollTo: "profile" });
     }
 
     if (quoteButton) {
@@ -715,6 +741,10 @@ function setDirectoryView(view) {
 function scrollToResults() {
   const target = window.innerWidth < 760 ? ".results-panel" : "#directory";
   document.querySelector(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function scrollToProfile() {
+  $("#profile")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function initIcons() {
