@@ -188,8 +188,6 @@ function enrichRows(rows) {
   return rows.map((row, index) => {
     const primary = normalizePrimaryCategory(row.primary_category, row.secondary_categories);
     const seed = hashString(row.name);
-    const rating = (4.6 + (seed % 5) / 10).toFixed(1);
-    const recommendations = 12 + (seed % 118);
     const replies = 12 + (seed % 47);
     const jobs = 18 + (seed % 126);
     const sourceVerified = row.confidence === "High";
@@ -206,8 +204,6 @@ function enrichRows(rows) {
       displayCategory: primary,
       tags: buildTags(row, primary),
       image: imageByCategory[primary] || imageByCategory.default,
-      rating,
-      recommendations,
       replies,
       jobs,
       claimed,
@@ -418,7 +414,7 @@ function renderResults() {
             ${row.sourceVerified ? '<span class="verified-dot"><i data-lucide="check"></i></span>' : ""}
           </span>
           <span class="listing-meta">
-            <span><i data-lucide="star"></i>${row.rating} (${row.recommendations})</span>
+            <span><i data-lucide="message-square-heart"></i>No local reviews yet</span>
             <span><i data-lucide="clock"></i>Replies in ${row.replies} min</span>
           </span>
           <span class="listing-category">${escapeHtml(row.displayCategory)}</span>
@@ -449,7 +445,7 @@ function updateProfile(row) {
   $("#profileImage").alt = `${row.name} project image`;
   $("#profileTitle").textContent = row.name;
   $("#profileSubtitle").textContent = `${row.displayCategory} serving ${row.serviceText}`;
-  $("#profileRating").textContent = row.rating;
+  $("#profileReviews").textContent = "No local reviews yet";
   $("#profileResponse").textContent = `${row.replies} min`;
   $("#profileDistance").textContent = row.distance;
   $("#profilePhone").textContent = row.phone || "Phone not yet verified";
