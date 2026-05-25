@@ -236,13 +236,13 @@ button:disabled {
 }
 
 .filter-toggle {
-  width: auto;
+  width: 42px;
   min-width: 42px;
-  padding: 0 13px;
+  padding: 0;
 }
 
 .filter-toggle span {
-  font-size: 0.86rem;
+  display: none;
 }
 
 .full {
