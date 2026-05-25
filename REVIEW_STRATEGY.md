@@ -2,7 +2,7 @@
 
 ## Product Principle
 
-Reviews are the trust layer for LocalTrades. Public source verification proves a provider exists; reviews should prove that local residents had real experiences with that provider.
+Reviews are the trust layer for BuiltLocal. Public source verification proves a provider exists; reviews should prove that local residents had real experiences with that provider.
 
 Do not copy Facebook comments or third-party review text into the site. Use Facebook and community groups only to invite people to submit original reviews directly.
 
@@ -56,6 +56,7 @@ Before a provider has approved reviews:
 - Show `No local reviews yet`.
 - Do not show fake star ratings.
 - Do not show generated recommendation counts.
+- Use public-facing section wording like `Local reviews are coming soon` until the review flow is live.
 
 After reviews exist:
 

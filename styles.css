@@ -38,6 +38,10 @@ textarea {
   font: inherit;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 button,
 a {
   -webkit-tap-highlight-color: transparent;
@@ -141,8 +145,17 @@ img {
   transition: color 160ms ease;
 }
 
-.desktop-nav a:hover {
+.desktop-nav a:hover,
+.nav-link:hover {
   color: var(--green);
+}
+
+.nav-link {
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
 }
 
 .primary-button,
@@ -220,6 +233,16 @@ button:disabled {
   color: var(--ink);
   background: #ffffff;
   border: 1px solid var(--line);
+}
+
+.filter-toggle {
+  width: auto;
+  min-width: 42px;
+  padding: 0 13px;
+}
+
+.filter-toggle span {
+  font-size: 0.86rem;
 }
 
 .full {
@@ -464,6 +487,7 @@ h2 {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: 0 10px 26px rgba(16, 27, 24, 0.05);
+  cursor: pointer;
 }
 
 .category-card.active {
@@ -480,6 +504,11 @@ h2 {
   color: var(--green);
   background: var(--green-soft);
   border-radius: 50%;
+}
+
+.category-icon svg {
+  width: 23px;
+  height: 23px;
 }
 
 .category-card:nth-child(2n) .category-icon {
@@ -636,6 +665,7 @@ h2 {
   background: #ffffff;
   border: 1px solid transparent;
   border-radius: var(--radius);
+  cursor: pointer;
 }
 
 .listing-card + .listing-card {
@@ -1025,6 +1055,10 @@ h2 {
   overflow: hidden;
 }
 
+.pro-dashboard:not([hidden]) {
+  display: grid;
+}
+
 .pro-sidebar {
   display: grid;
   align-content: start;
@@ -1044,6 +1078,7 @@ h2 {
   border: 0;
   border-radius: var(--radius);
   text-align: left;
+  cursor: pointer;
 }
 
 .side-link.active,
@@ -1094,6 +1129,54 @@ h2 {
   grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
   gap: 14px;
   margin-top: 14px;
+}
+
+.pro-panel {
+  display: none;
+}
+
+.pro-panel.active {
+  display: grid;
+}
+
+.compact-stats {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profile-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.profile-editor-grid label {
+  display: grid;
+  gap: 7px;
+  color: #2d3b37;
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+.empty-state {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  padding: 18px;
+  color: var(--muted);
+  background: #fbfcfb;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.empty-state svg {
+  width: 28px;
+  height: 28px;
+  color: var(--green);
+}
+
+.empty-state strong {
+  color: var(--ink);
 }
 
 .lead-panel,
@@ -1236,6 +1319,42 @@ h2 {
   box-shadow: none;
 }
 
+.modal-note {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.form-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  color: #24433a;
+  background: var(--green-soft);
+  border: 1px solid rgba(19, 122, 70, 0.22);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.form-success svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  color: var(--green);
+}
+
+@media (min-width: 761px) {
+  .workspace.filters-hidden {
+    grid-template-columns: minmax(300px, 430px) minmax(420px, 1fr);
+  }
+
+  .workspace.filters-hidden .filters {
+    display: none;
+  }
+}
+
 .modal-head {
   display: flex;
   align-items: flex-start;
@@ -1292,7 +1411,7 @@ h2 {
   }
 
   .pro-sidebar {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     overflow-x: auto;
   }
 
@@ -1414,6 +1533,19 @@ h2 {
     display: grid;
   }
 
+  .filter-toggle span {
+    display: none;
+  }
+
+  .profile-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .profile-actions > * {
+    width: 100%;
+  }
+
   .results-panel {
     min-height: auto;
   }
@@ -1437,7 +1569,8 @@ h2 {
   }
 
   .pro-sidebar {
-    display: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 
   .dashboard-main {
@@ -1460,7 +1593,7 @@ h2 {
     bottom: 12px;
     z-index: 1000;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 2px;
     padding: 8px;
     background: rgba(255, 255, 255, 0.94);
@@ -1496,6 +1629,10 @@ h2 {
   }
 
   .choice-row {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-editor-grid {
     grid-template-columns: 1fr;
   }
 }

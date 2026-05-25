@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>LocalTrades South Dundas</title>
+    <title>BuiltLocal South Dundas</title>
     <link rel="preconnect" href="https://images.unsplash.com" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
@@ -13,12 +13,12 @@
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="#home" aria-label="LocalTrades home">
+        <a class="brand" href="#home" aria-label="BuiltLocal home">
           <span class="brand-mark">
             <i data-lucide="sprout"></i>
           </span>
           <span>
-            <strong>LocalTrades</strong>
+            <strong>BuiltLocal</strong>
             <small>South Dundas & Rural Area</small>
           </span>
         </a>
@@ -26,7 +26,7 @@
         <nav class="desktop-nav" aria-label="Primary navigation">
           <a href="#directory">Find Contractors</a>
           <a href="#reviews">Reviews</a>
-          <a href="#pros">For Contractors</a>
+          <button class="nav-link" type="button" data-dashboard-link>For Contractors</button>
           <button class="ghost-button" type="button" data-dashboard-link>
             <i data-lucide="layout-dashboard"></i>
             Pro Dashboard
@@ -35,7 +35,7 @@
 
         <button class="primary-button compact" type="button" data-claim-link>
           <i data-lucide="badge-check"></i>
-          Claim Profile
+          Claim Your Business
         </button>
       </header>
 
@@ -110,8 +110,9 @@
                 <i data-lucide="list"></i>
                 List
               </button>
-              <button class="icon-button" type="button" aria-label="Filters" data-filter-button>
+              <button class="icon-button filter-toggle" type="button" aria-label="Filters" aria-pressed="false" data-filter-button>
                 <i data-lucide="sliders-horizontal"></i>
+                <span>Filters</span>
               </button>
             </div>
           </div>
@@ -218,6 +219,10 @@
               </div>
             </div>
             <div class="profile-actions">
+              <button class="secondary-button" type="button" data-back-results>
+                <i data-lucide="arrow-left"></i>
+                Back to results
+              </button>
               <a class="secondary-button" id="messageButton" href="#">
                 <i data-lucide="phone"></i>
                 Call
@@ -228,7 +233,7 @@
               </button>
               <button class="ghost-button" type="button" data-claim-link>
                 <i data-lucide="badge-check"></i>
-                Claim Listing
+                Claim This Listing
               </button>
             </div>
           </div>
@@ -238,7 +243,7 @@
           <div class="section-head">
             <div>
               <p class="section-kicker">Reviews</p>
-              <h2 id="reviews-title">Build the trust layer locals already want.</h2>
+              <h2 id="reviews-title">Local reviews are coming soon</h2>
             </div>
             <button class="primary-button compact" type="button" data-open-review>
               <i data-lucide="message-square-plus"></i>
@@ -270,25 +275,26 @@
           </div>
         </section>
 
-        <section class="pro-dashboard" id="pros" aria-labelledby="dashboard-title">
+        <section class="pro-dashboard" id="pros" aria-labelledby="dashboard-title" hidden>
           <aside class="pro-sidebar">
             <div class="brand inverse">
               <span class="brand-mark"><i data-lucide="sprout"></i></span>
-              <span><strong>LocalTrades</strong><small>Pro</small></span>
+              <span><strong>BuiltLocal</strong><small>Pro</small></span>
             </div>
-            <button class="side-link active" type="button"><i data-lucide="layout-dashboard"></i>Dashboard</button>
-            <button class="side-link" type="button"><i data-lucide="inbox"></i>Leads</button>
-            <button class="side-link" type="button"><i data-lucide="user-round-cog"></i>Profile</button>
-            <button class="side-link" type="button"><i data-lucide="star"></i>Reviews</button>
-            <button class="side-link" type="button"><i data-lucide="bar-chart-3"></i>Analytics</button>
+            <button class="side-link active" type="button" data-pro-tab="leads"><i data-lucide="inbox"></i>Leads</button>
+            <button class="side-link" type="button" data-pro-tab="analytics"><i data-lucide="bar-chart-3"></i>Analytics</button>
+            <button class="side-link" type="button" data-pro-tab="profile"><i data-lucide="user-round-cog"></i>Profile</button>
+            <button class="side-link" type="button" data-pro-tab="reviews"><i data-lucide="star"></i>Reviews</button>
+            <button class="side-link" type="button" data-pro-tab="areas"><i data-lucide="map"></i>Service Areas</button>
+            <button class="side-link" type="button" data-pro-tab="settings"><i data-lucide="settings"></i>Settings/Billing</button>
           </aside>
           <div class="dashboard-main">
             <div class="dashboard-head">
               <div>
                 <p class="section-kicker">Contractor dashboard</p>
-                <h2 id="dashboard-title">Welcome back, Highland Roofing</h2>
+                <h2 id="dashboard-title">Welcome back, BuiltLocal Demo Co.</h2>
               </div>
-              <button class="secondary-button" type="button">
+              <button class="secondary-button" type="button" data-view-public-profile>
                 <i data-lucide="external-link"></i>
                 View Public Profile
               </button>
@@ -299,10 +305,10 @@
               <div><strong>0</strong><span>Approved reviews</span></div>
               <div><strong>92%</strong><span>Response rate</span></div>
             </div>
-            <div class="dashboard-grid">
+            <div class="dashboard-grid pro-panel active" data-pro-panel="leads">
               <div class="lead-panel">
                 <div class="panel-head">
-                  <strong>Recent leads</strong>
+                  <strong>Recent lead queue</strong>
                   <button class="text-button" type="button">View all</button>
                 </div>
                 <div class="lead-list">
@@ -334,6 +340,78 @@
                 </ul>
               </div>
             </div>
+            <div class="dashboard-grid pro-panel" data-pro-panel="analytics">
+              <div class="lead-panel">
+                <div class="panel-head"><strong>Analytics preview</strong></div>
+                <div class="stats-grid compact-stats">
+                  <div><strong>24</strong><span>Profile views</span></div>
+                  <div><strong>11</strong><span>Call clicks</span></div>
+                  <div><strong>8</strong><span>Quote requests</span></div>
+                  <div><strong>3</strong><span>Map opens</span></div>
+                </div>
+              </div>
+              <div class="strength-panel">
+                <strong>What this becomes</strong>
+                <span>Businesses will see which services and towns are creating demand before upgrading their profile.</span>
+              </div>
+            </div>
+            <div class="dashboard-grid pro-panel" data-pro-panel="profile">
+              <div class="lead-panel">
+                <div class="panel-head"><strong>Profile editor</strong></div>
+                <div class="profile-editor-grid">
+                  <label>Business name<input type="text" value="BuiltLocal Demo Co." /></label>
+                  <label>Primary service<input type="text" value="Roofing and exterior repairs" /></label>
+                  <label>Public phone<input type="text" value="(613) 555-0148" /></label>
+                  <label>Photos<input type="text" value="Project photos, truck, logo" /></label>
+                </div>
+              </div>
+              <div class="strength-panel">
+                <strong>Claimed profiles</strong>
+                <span>Later this becomes the business-owned source of truth for services, photos, and contact details.</span>
+              </div>
+            </div>
+            <div class="dashboard-grid pro-panel" data-pro-panel="reviews">
+              <div class="lead-panel">
+                <div class="panel-head"><strong>Approved reviews</strong></div>
+                <div class="empty-state">
+                  <i data-lucide="message-square-heart"></i>
+                  <strong>No approved reviews yet</strong>
+                  <span>Invite link placeholder: builtlocal.ca/review/demo-co</span>
+                </div>
+              </div>
+              <div class="strength-panel">
+                <strong>Moderated trust</strong>
+                <span>Reviews remain pending until BuiltLocal approves them for launch quality.</span>
+              </div>
+            </div>
+            <div class="dashboard-grid pro-panel" data-pro-panel="areas">
+              <div class="lead-panel">
+                <div class="panel-head"><strong>Service areas</strong></div>
+                <div class="profile-editor-grid">
+                  <label>Primary town<input type="text" value="Morrisburg" /></label>
+                  <label>Service radius<input type="text" value="30 km" /></label>
+                  <label>Also serves<input type="text" value="Iroquois, Williamsburg, Brinston" /></label>
+                </div>
+              </div>
+              <div class="strength-panel">
+                <strong>Rural matching</strong>
+                <span>Service areas will help route quote requests to providers who actually cover the resident's location.</span>
+              </div>
+            </div>
+            <div class="dashboard-grid pro-panel" data-pro-panel="settings">
+              <div class="lead-panel">
+                <div class="panel-head"><strong>Settings and billing</strong></div>
+                <div class="empty-state">
+                  <i data-lucide="credit-card"></i>
+                  <strong>Prototype placeholder</strong>
+                  <span>Plan, billing, account users, and notification preferences would live here after real auth exists.</span>
+                </div>
+              </div>
+              <div class="strength-panel">
+                <strong>Demo access only</strong>
+                <span>No real account, database, billing, or lead delivery is active in this static prototype.</span>
+              </div>
+            </div>
           </div>
         </section>
       </main>
@@ -342,19 +420,20 @@
         <a href="#home" class="active"><i data-lucide="home"></i><span>Home</span></a>
         <a href="#directory"><i data-lucide="search"></i><span>Search</span></a>
         <a href="#profile"><i data-lucide="map"></i><span>Map</span></a>
+        <button type="button" data-dashboard-link><i data-lucide="layout-dashboard"></i><span>Pro</span></button>
         <button type="button" data-open-quote><i data-lucide="clipboard-list"></i><span>Quote</span></button>
         <button type="button" data-claim-link><i data-lucide="user"></i><span>Claim</span></button>
       </nav>
     </div>
 
     <dialog class="quote-dialog" id="quoteDialog">
-      <form method="dialog" class="quote-form">
+      <form class="quote-form" id="quoteForm">
         <div class="modal-head">
           <div>
             <p class="section-kicker">Request a Quote</p>
             <h2>Tell us about your project</h2>
           </div>
-          <button class="icon-button" value="cancel" aria-label="Close quote form">
+          <button class="icon-button" type="button" data-close-dialog aria-label="Close quote form">
             <i data-lucide="x"></i>
           </button>
         </div>
@@ -377,7 +456,11 @@
           <button class="chip" type="button">Within a week</button>
           <button class="chip" type="button">Flexible</button>
         </div>
-        <button class="primary-button full" value="default" type="submit">
+        <div class="form-success" id="quoteSuccess" hidden>
+          <i data-lucide="check-circle"></i>
+          <span>Prototype only: this would become a lead sent to the business or matching providers once lead delivery is active.</span>
+        </div>
+        <button class="primary-button full" type="submit">
           <i data-lucide="send"></i>
           Send Request
         </button>
@@ -388,7 +471,7 @@
       <form method="dialog" class="quote-form">
         <div class="modal-head">
           <div>
-            <p class="section-kicker">Claim Listing</p>
+            <p class="section-kicker">Claim Your Business</p>
             <h2>Keep your profile accurate</h2>
           </div>
           <button class="icon-button" value="cancel" aria-label="Close claim form">
@@ -414,6 +497,29 @@
         <button class="primary-button full" value="default" type="submit">
           <i data-lucide="badge-check"></i>
           Start Claim
+        </button>
+      </form>
+    </dialog>
+
+    <dialog class="quote-dialog" id="proAccessDialog">
+      <form method="dialog" class="quote-form">
+        <div class="modal-head">
+          <div>
+            <p class="section-kicker">BuiltLocal Pro</p>
+            <h2>Business access</h2>
+          </div>
+          <button class="icon-button" value="cancel" aria-label="Close business access">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <p class="modal-note">Use the demo account to preview how claimed businesses will manage leads, analytics, profile edits, reviews, service areas, and billing.</p>
+        <label>
+          Demo business
+          <input type="text" value="BuiltLocal Demo Co." readonly />
+        </label>
+        <button class="primary-button full" type="button" data-pro-sign-in>
+          <i data-lucide="log-in"></i>
+          Continue as Demo Business
         </button>
       </form>
     </dialog>

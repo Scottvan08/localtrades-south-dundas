@@ -14,20 +14,72 @@ const state = {
   categoriesExpanded: false,
 };
 
-const imageByCategory = {
-  Plumbing: "https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=900&q=80",
-  HVAC: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=900&q=80",
-  Electrical: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=900&q=80",
-  "General Contractor": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=900&q=80",
-  Excavation: "https://images.unsplash.com/photo-1581093458791-9d42cc0f87bf?auto=format&fit=crop&w=900&q=80",
-  Roofing: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=900&q=80",
-  Landscaping: "https://images.unsplash.com/photo-1558904541-efa843a96f01?auto=format&fit=crop&w=900&q=80",
-  "Tree Service": "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=900&q=80",
-  "Pest Control": "https://images.unsplash.com/photo-1524486361537-8ad15938e1a3?auto=format&fit=crop&w=900&q=80",
-  "Waste Removal": "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=900&q=80",
-  "Farm Equipment": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=900&q=80",
-  "Building Supplies": "https://images.unsplash.com/photo-1531834685032-c34bf0d84c77?auto=format&fit=crop&w=900&q=80",
-  default: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80",
+const imagePoolsByCategory = {
+  Plumbing: [
+    "https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=900&q=80",
+  ],
+  HVAC: [
+    "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1581092919535-7146ff1a590b?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1581093450021-4a7360e9a7f8?auto=format&fit=crop&w=900&q=80",
+  ],
+  Electrical: [
+    "https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1517420704952-d9f39e95b43e?auto=format&fit=crop&w=900&q=80",
+  ],
+  "General Contractor": [
+    "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=900&q=80",
+  ],
+  Excavation: [
+    "https://images.unsplash.com/photo-1581093458791-9d42cc0f87bf?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1592993180300-974cd5c9760c?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?auto=format&fit=crop&w=900&q=80",
+  ],
+  Roofing: [
+    "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=900&q=80",
+  ],
+  Landscaping: [
+    "https://images.unsplash.com/photo-1558904541-efa843a96f01?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1598902108854-10e335adac99?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=900&q=80",
+  ],
+  "Snow Removal": [
+    "https://images.unsplash.com/photo-1517299321609-52687d1bc55a?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1483664852095-d6cc6870702d?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1453306458620-5bbef13a5bca?auto=format&fit=crop&w=900&q=80",
+  ],
+  "Tree Service": [
+    "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=900&q=80",
+  ],
+  "Pest Control": [
+    "https://images.unsplash.com/photo-1524486361537-8ad15938e1a3?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=900&q=80",
+  ],
+  "Waste Removal": [
+    "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1604187351574-c75ca79f5807?auto=format&fit=crop&w=900&q=80",
+  ],
+  "Farm Equipment": [
+    "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=900&q=80",
+  ],
+  "Building Supplies": [
+    "https://images.unsplash.com/photo-1531834685032-c34bf0d84c77?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=900&q=80",
+  ],
+  default: [
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80",
+  ],
 };
 
 const iconByCategory = {
@@ -35,7 +87,7 @@ const iconByCategory = {
   Plumbing: "wrench",
   HVAC: "fan",
   Electrical: "zap",
-  "General Contractor": "hammer",
+  "General Contractor": "hard-hat",
   Excavation: "construction",
   Roofing: "home",
   Septic: "droplets",
@@ -203,7 +255,7 @@ function enrichRows(rows) {
       id: `${slugify(row.name)}-${index}`,
       displayCategory: primary,
       tags: buildTags(row, primary),
-      image: imageByCategory[primary] || imageByCategory.default,
+      image: imageForCategory(primary, row.name),
       replies,
       jobs,
       claimed,
@@ -249,6 +301,11 @@ function buildTags(row, primary) {
     .filter(Boolean)
     .filter((tag, index, arr) => arr.indexOf(tag) === index)
     .slice(0, 5);
+}
+
+function imageForCategory(category, businessName) {
+  const pool = imagePoolsByCategory[category] || imagePoolsByCategory.default;
+  return pool[hashString(businessName || category) % pool.length];
 }
 
 function serviceAreasFor(town) {
@@ -662,6 +719,11 @@ function wireEvents() {
     const dashboardButton = event.target.closest("[data-dashboard-link]");
     const viewButton = event.target.closest("[data-view]");
     const popupProfileButton = event.target.closest("[data-popup-profile]");
+    const backResultsButton = event.target.closest("[data-back-results]");
+    const proSignInButton = event.target.closest("[data-pro-sign-in]");
+    const proTabButton = event.target.closest("[data-pro-tab]");
+    const viewPublicProfileButton = event.target.closest("[data-view-public-profile]");
+    const closeDialogButton = event.target.closest("[data-close-dialog]");
 
     if (popupProfileButton) {
       const row = state.rows.find((item) => item.id === popupProfileButton.dataset.popupProfile);
@@ -684,6 +746,7 @@ function wireEvents() {
     }
 
     if (quoteButton) {
+      $("#quoteSuccess").hidden = true;
       $("#quoteDialog").showModal();
       initIcons();
     }
@@ -714,11 +777,15 @@ function wireEvents() {
     }
 
     if (filterButton) {
+      const workspace = $(".workspace");
       $("#filtersPanel").classList.toggle("open");
+      workspace.classList.toggle("filters-hidden");
+      filterButton.setAttribute("aria-pressed", String(workspace.classList.contains("filters-hidden")));
     }
 
     if (dashboardButton) {
-      $("#pros").scrollIntoView({ behavior: "smooth", block: "start" });
+      $("#proAccessDialog").showModal();
+      initIcons();
     }
 
     if (viewButton) {
@@ -727,10 +794,55 @@ function wireEvents() {
       document.querySelector(target)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
       if (state.map) setTimeout(() => state.map.invalidateSize(), 240);
     }
+
+    if (backResultsButton) {
+      setDirectoryView("list");
+      scrollToResults();
+    }
+
+    if (proSignInButton) {
+      $("#proAccessDialog").close();
+      openProDashboard();
+    }
+
+    if (proTabButton) {
+      setProTab(proTabButton.dataset.proTab);
+    }
+
+    if (viewPublicProfileButton) {
+      scrollToProfile();
+    }
+
+    if (closeDialogButton) {
+      closeDialogButton.closest("dialog")?.close();
+    }
+  });
+
+  $("#quoteForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    $("#quoteSuccess").hidden = false;
+    initIcons();
   });
 
   window.addEventListener("resize", () => {
     if (state.map) state.map.invalidateSize();
+  });
+}
+
+function openProDashboard() {
+  const dashboard = $("#pros");
+  dashboard.hidden = false;
+  setProTab("leads");
+  dashboard.scrollIntoView({ behavior: "smooth", block: "start" });
+  initIcons();
+}
+
+function setProTab(tabName) {
+  $$("[data-pro-tab]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.proTab === tabName);
+  });
+  $$("[data-pro-panel]").forEach((panel) => {
+    panel.classList.toggle("active", panel.dataset.proPanel === tabName);
   });
 }
 
