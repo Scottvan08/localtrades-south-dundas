@@ -27,7 +27,7 @@ const imagePoolsByCategory = {
   ],
   Electrical: [
     "https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1741388222137-c0d3007ec173?auto=format&fit=crop&w=900&q=80",
     "https://images.unsplash.com/photo-1517420704952-d9f39e95b43e?auto=format&fit=crop&w=900&q=80",
   ],
   "General Contractor": [
