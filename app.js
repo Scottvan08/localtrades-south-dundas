@@ -4,8 +4,7 @@ const state = {
   selected: null,
   category: "",
   service: "",
-  county: "Dundas",
-  localArea: "South Dundas",
+  region: "",
   town: "",
   confidence: "",
   availableToday: false,
@@ -175,6 +174,8 @@ const localAreaToCounty = Object.entries(localAreaConfig).reduce((acc, [county, 
   });
   return acc;
 }, {});
+
+const localAreas = Object.values(localAreaConfig).flatMap((areas) => Object.keys(areas));
 
 const townCenters = {
   "SD&G": { lat: 45.0902, lng: -74.8359 },
@@ -404,13 +405,13 @@ function geoForRow(row, town, localArea, seed, index, isLocal) {
   };
 }
 
-function townCenterFor(town, fallback = state.localArea) {
-  const cleanTown = town || fallback || "South Dundas";
+function townCenterFor(town, fallback = state.region || "SD&G") {
+  const cleanTown = town || fallback || "SD&G";
   const direct = townCenters[cleanTown];
   if (direct) return direct;
 
   const match = Object.entries(townCenters).find(([name]) => cleanTown.toLowerCase().includes(name.toLowerCase()));
-  return match ? match[1] : townCenters[fallback] || townCenters["South Dundas"];
+  return match ? match[1] : townCenters[fallback] || townCenters["SD&G"];
 }
 
 function jitterFor(seed, index) {
@@ -425,11 +426,17 @@ function jitterFor(seed, index) {
 
 function renderCategories() {
   const grid = $("#categoryGrid");
-  const scopedRows = rowsForCurrentLocalArea();
-  const counts = scopedRows.reduce((acc, row) => {
+  const rows = state.rows;
+  const counts = rows.reduce((acc, row) => {
     acc[row.displayCategory] = (acc[row.displayCategory] || 0) + 1;
     return acc;
   }, {});
+  const localCounts = state.region
+    ? rows.filter((row) => row.local_area === state.region).reduce((acc, row) => {
+        acc[row.displayCategory] = (acc[row.displayCategory] || 0) + 1;
+        return acc;
+      }, {})
+    : {};
   const rankedNames = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
   const popularNames = [
     ...popularTradeCategories.filter((category) => counts[category]),
@@ -444,7 +451,7 @@ function renderCategories() {
   const hiddenCount = Math.max(0, rankedNames.length - visibleNames.length);
   const categories = visibleNames.map((name) => ({ name, count: counts[name], filter: name }));
 
-  $("#categoryCoverage").textContent = `${scopedRows.length} profiles in ${state.localArea}`;
+  $("#categoryCoverage").textContent = `${rows.length} SD&G profiles`;
   $("[data-toggle-categories]").textContent = state.categoriesExpanded
     ? "Show popular"
     : `See all ${Object.keys(counts).length} categories`;
@@ -454,8 +461,9 @@ function renderCategories() {
     .map((category) => {
       const icon = iconByCategory[category.name] || iconByCategory.default;
       const active = category.filter === state.category ? " active" : "";
-      const label = category.name === "All Services"
-        ? `${category.count} total profiles`
+      const localCount = localCounts[category.name] || 0;
+      const label = state.region
+        ? `${category.count} total · ${localCount} local`
         : `${category.count} ${category.count === 1 ? "profile" : "profiles"}`;
       return `
         <button class="category-card${active}" type="button" data-category="${escapeHtml(category.filter)}">
@@ -484,7 +492,7 @@ function applyFilters() {
   const townText = state.town.trim().toLowerCase();
   const categoryText = state.category.trim().toLowerCase();
 
-  state.filtered = rowsForCurrentLocalArea().filter((row) => {
+  state.filtered = state.rows.filter((row) => {
     const haystack = [
       row.name,
       row.primary_category,
@@ -507,13 +515,13 @@ function applyFilters() {
     const availabilityMatch = !state.availableToday || row.availableToday;
 
     return serviceMatch && categoryMatch && townMatch && confidenceMatch && availabilityMatch;
-  });
+  }).sort(compareRows);
 
   if (!state.filtered.length && (state.service || state.category)) {
-    state.filtered = rowsForCurrentLocalArea().filter((row) => {
+    state.filtered = state.rows.filter((row) => {
       if (!state.town) return true;
       return row.serviceAreas.join(" ").toLowerCase().includes(townText);
-    });
+    }).sort(compareRows);
   }
 
   syncSelectedWithFilter();
@@ -523,8 +531,30 @@ function applyFilters() {
   updateMap();
 }
 
-function rowsForCurrentLocalArea() {
-  return state.rows.filter((row) => row.county === state.county && row.local_area === state.localArea);
+function compareRows(a, b) {
+  const aScore = rowPriority(a);
+  const bScore = rowPriority(b);
+  return bScore - aScore || a.name.localeCompare(b.name);
+}
+
+function rowPriority(row) {
+  let score = 0;
+  if (state.region && row.local_area === state.region) score += 100;
+  if (state.town && rowMatchesTown(row, state.town)) score += 120;
+  if (row.sourceVerified) score += 10;
+  if (row.availableToday) score += 4;
+  return score;
+}
+
+function rowMatchesTown(row, town) {
+  const townText = String(town || "").toLowerCase();
+  if (!townText) return true;
+  return [
+    row.town,
+    row.local_area,
+    row.service_area_notes,
+    row.serviceAreas.join(" "),
+  ].join(" ").toLowerCase().includes(townText);
 }
 
 function syncSelectedWithFilter() {
@@ -540,6 +570,12 @@ function renderResults() {
   const list = $("#resultsList");
   const selectedId = state.selected?.id;
   $("#resultCount").textContent = `${state.filtered.length} contractors`;
+  const localCount = state.region ? state.filtered.filter((row) => row.local_area === state.region).length : 0;
+  $("#sortLabel").textContent = state.town
+    ? `Near: ${state.town}`
+    : state.region
+      ? `${localCount} local shown first`
+      : "Sort: Best Match";
 
   list.innerHTML = state.filtered
     .map((row) => `
@@ -603,21 +639,25 @@ function updateProfile(row) {
 }
 
 function updateSummary() {
-  const total = state.filtered.length || rowsForCurrentLocalArea().length;
-  const area = state.town || state.localArea;
+  const total = state.filtered.length || state.rows.length;
+  const area = state.town || state.region || "SD&G";
   const service = state.category || state.service || "service";
-  $("#mapSummary").textContent = `${total} ${service.toLowerCase()} profiles near ${area}`;
+  $("#mapSummary").textContent = state.region && !state.town
+    ? `${total} ${service.toLowerCase()} profiles across SD&G`
+    : `${total} ${service.toLowerCase()} profiles near ${area}`;
   $("#mapFootnote").textContent = state.selected
     ? `${state.selected.locationPrecision}. Selected radius: ${state.selected.serviceRadiusKm} km.`
-    : "Approximate pins until listings are claimed. Circle shows selected service radius.";
+    : state.region && !state.town
+      ? `${state.region} profiles are shown first. Approximate pins until listings are claimed.`
+      : "Approximate pins until listings are claimed. Circle shows selected service radius.";
 }
 
 function initMap() {
   if (!window.L || !$("#directoryMap")) return;
 
   state.map = window.L.map("directoryMap", {
-    center: [townCenters[state.localArea].lat, townCenters[state.localArea].lng],
-    zoom: 11,
+    center: [townCenters["SD&G"].lat, townCenters["SD&G"].lng],
+    zoom: 10,
     scrollWheelZoom: false,
   });
 
@@ -664,8 +704,8 @@ function updateMap() {
   } else if (bounds.length === 1) {
     state.map.setView(bounds[0], 12);
   } else {
-    const center = townCenterFor(state.localArea);
-    state.map.setView([center.lat, center.lng], 11);
+    const center = townCenterFor(state.region || "SD&G");
+    state.map.setView([center.lat, center.lng], state.region ? 11 : 10);
   }
 
   drawServiceCircle(state.selected);
@@ -760,37 +800,40 @@ function categoryInitials(category) {
 }
 
 function syncRegionControls() {
-  const localAreas = Object.keys(localAreaConfig[state.county] || localAreaConfig.Dundas);
-  if (!localAreas.includes(state.localArea)) {
-    state.localArea = localAreas[0];
+  if (state.region && !localAreas.includes(state.region)) {
+    state.region = "";
   }
 
-  $$("[data-county-select]").forEach((select) => {
-    select.value = state.county;
+  $$("[data-region-select]").forEach((select) => {
+    select.value = state.region;
   });
 
-  $$("[data-local-area-select]").forEach((select) => {
-    select.innerHTML = localAreas
-      .map((area) => `<option value="${escapeHtml(area)}">${escapeHtml(area)}</option>`)
-      .join("");
-    select.value = state.localArea;
-  });
-
-  const towns = localAreaConfig[state.county]?.[state.localArea] || [];
-  $("#filterArea").innerHTML = [`<option value="">Anywhere in ${escapeHtml(state.localArea)}</option>`]
+  const towns = townsForRegion(state.region);
+  const anywhereLabel = state.region ? `Anywhere in ${state.region}` : "Anywhere in SD&G";
+  $("#filterArea").innerHTML = [`<option value="">${escapeHtml(anywhereLabel)}</option>`]
     .concat(towns.map((town) => `<option value="${escapeHtml(town)}">${escapeHtml(town)}</option>`))
     .join("");
   $("#filterArea").value = state.town;
-  $("#directory-title").textContent = `Find a service in ${state.localArea}`;
-  $("#sortLabel").textContent = state.town ? `Near: ${state.town}` : `Area: ${state.localArea}`;
+  $("#directory-title").textContent = state.region ? `Find a service near ${state.region}` : "Find a service across SD&G";
+}
+
+function townsForRegion(region) {
+  if (region) {
+    const county = countyForLocalArea(region);
+    return localAreaConfig[county]?.[region] || [];
+  }
+
+  return Object.values(localAreaConfig)
+    .flatMap((areas) => Object.values(areas))
+    .flat()
+    .sort((a, b) => a.localeCompare(b));
 }
 
 function wireEvents() {
   $("#heroSearch").addEventListener("submit", (event) => {
     event.preventDefault();
     state.service = $("#serviceSearch").value;
-    state.county = $("#countySearch").value;
-    state.localArea = $("#localAreaSearch").value;
+    state.region = $("#regionSearch").value;
     state.town = "";
     $("#filterService").value = state.service;
     syncRegionControls();
@@ -800,21 +843,9 @@ function wireEvents() {
     scrollToResults();
   });
 
-  $$("[data-county-select]").forEach((select) => {
+  $$("[data-region-select]").forEach((select) => {
     select.addEventListener("change", (event) => {
-      state.county = event.target.value;
-      state.localArea = Object.keys(localAreaConfig[state.county])[0];
-      state.town = "";
-      state.category = "";
-      syncRegionControls();
-      applyFilters();
-    });
-  });
-
-  $$("[data-local-area-select]").forEach((select) => {
-    select.addEventListener("change", (event) => {
-      state.localArea = event.target.value;
-      state.county = countyForLocalArea(state.localArea) || state.county;
+      state.region = event.target.value;
       state.town = "";
       state.category = "";
       syncRegionControls();
@@ -893,6 +924,7 @@ function wireEvents() {
     if (clearButton) {
       state.category = "";
       state.service = "";
+      state.region = "";
       state.town = "";
       state.confidence = "";
       state.availableToday = false;

@@ -325,7 +325,7 @@ a svg,
 
 .search-panel {
   display: grid;
-  grid-template-columns: minmax(220px, 1.35fr) minmax(140px, 0.55fr) minmax(170px, 0.7fr) auto;
+  grid-template-columns: minmax(240px, 1.4fr) minmax(190px, 0.75fr) auto;
   gap: 10px;
   max-width: 1020px;
   padding: 10px;

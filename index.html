@@ -56,17 +56,16 @@
                 <i data-lucide="search"></i>
                 <input id="serviceSearch" name="service" type="search" placeholder="What do you need help with?" autocomplete="off" />
               </div>
-              <label class="sr-only" for="countySearch">County</label>
-              <select id="countySearch" name="county" data-county-select>
-                <option value="Dundas">Dundas</option>
-                <option value="Stormont">Stormont</option>
-                <option value="Glengarry">Glengarry</option>
-                <option value="Cornwall">Cornwall &amp; Area</option>
-              </select>
-              <label class="sr-only" for="localAreaSearch">Local area</label>
-              <select id="localAreaSearch" name="localArea" data-local-area-select>
+              <label class="sr-only" for="regionSearch">Location</label>
+              <select id="regionSearch" name="region" data-region-select>
+                <option value="">All SD&amp;G</option>
                 <option value="South Dundas">South Dundas</option>
                 <option value="North Dundas">North Dundas</option>
+                <option value="South Stormont">South Stormont</option>
+                <option value="North Stormont">North Stormont</option>
+                <option value="South Glengarry">South Glengarry</option>
+                <option value="North Glengarry">North Glengarry</option>
+                <option value="Cornwall &amp; Area">Cornwall &amp; Area</option>
               </select>
               <button class="primary-button" type="submit">
                 <i data-lucide="search"></i>
@@ -86,7 +85,7 @@
         <section class="service-strip" aria-labelledby="popular-title">
           <div class="section-head">
             <div>
-              <p class="section-kicker">Popular in your area</p>
+              <p class="section-kicker">Popular across SD&amp;G</p>
               <h2 id="popular-title">Start with the job, not the directory.</h2>
             </div>
             <div class="section-actions">
@@ -101,7 +100,7 @@
           <div class="directory-top">
             <div>
               <p class="section-kicker">Directory</p>
-              <h2 id="directory-title">Find a service in South Dundas</h2>
+              <h2 id="directory-title">Find a service across SD&amp;G</h2>
             </div>
             <div class="directory-actions">
               <button class="segmented" type="button" data-view="map">
@@ -129,25 +128,22 @@
                 </div>
               </label>
               <label>
-                County
-                <select id="filterCounty" data-county-select>
-                  <option value="Dundas">Dundas</option>
-                  <option value="Stormont">Stormont</option>
-                  <option value="Glengarry">Glengarry</option>
-                  <option value="Cornwall">Cornwall &amp; Area</option>
-                </select>
-              </label>
-              <label>
-                Area
-                <select id="filterLocalArea" data-local-area-select>
+                Location
+                <select id="filterRegion" data-region-select>
+                  <option value="">All SD&amp;G</option>
                   <option value="South Dundas">South Dundas</option>
                   <option value="North Dundas">North Dundas</option>
+                  <option value="South Stormont">South Stormont</option>
+                  <option value="North Stormont">North Stormont</option>
+                  <option value="South Glengarry">South Glengarry</option>
+                  <option value="North Glengarry">North Glengarry</option>
+                  <option value="Cornwall &amp; Area">Cornwall &amp; Area</option>
                 </select>
               </label>
               <label>
                 Near
                 <select id="filterArea">
-                  <option value="">Anywhere in South Dundas</option>
+                  <option value="">Anywhere in SD&amp;G</option>
                 </select>
               </label>
               <label>
