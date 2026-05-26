@@ -150,6 +150,93 @@ const preferredCategories = [
   "Waste Removal",
 ];
 
+const searchKeywordMap = {
+  ac: ["HVAC"],
+  "air conditioner": ["HVAC"],
+  "air conditioning": ["HVAC"],
+  "appliance hookup": ["Electrical", "Plumbing"],
+  basement: ["Plumbing", "General Contractor", "Home Repair"],
+  bathroom: ["Plumbing", "General Contractor", "Home Repair"],
+  breaker: ["Electrical"],
+  build: ["General Contractor", "Home Repair"],
+  carpenter: ["General Contractor", "Home Repair"],
+  carpentry: ["General Contractor", "Home Repair"],
+  ceiling: ["Home Repair", "General Contractor"],
+  concrete: ["Concrete", "General Contractor", "Excavation"],
+  contractor: ["General Contractor"],
+  deck: ["General Contractor", "Home Repair", "Landscaping"],
+  demolition: ["Excavation", "Waste Removal", "General Contractor"],
+  driveway: ["Excavation", "Landscaping", "Snow Removal"],
+  drywall: ["Home Repair", "General Contractor", "Painting"],
+  duct: ["HVAC"],
+  eavestrough: ["Roofing", "Home Repair"],
+  electrical: ["Electrical"],
+  electrician: ["Electrical"],
+  emergency: ["Plumbing", "Electrical", "HVAC", "Roofing", "Tree Service"],
+  excavation: ["Excavation"],
+  excavator: ["Excavation"],
+  farm: ["Farm Equipment", "Building Supplies"],
+  fence: ["General Contractor", "Landscaping", "Home Repair"],
+  fencing: ["General Contractor", "Landscaping", "Home Repair"],
+  furnace: ["HVAC"],
+  garage: ["General Contractor", "Home Repair", "Electrical"],
+  generator: ["Electrical", "Outdoor Power Equipment"],
+  grading: ["Excavation", "Landscaping"],
+  gravel: ["Excavation", "Building Supplies", "Landscaping"],
+  gutter: ["Roofing", "Home Repair"],
+  gutters: ["Roofing", "Home Repair"],
+  handyman: ["Home Repair", "General Contractor"],
+  heat: ["HVAC"],
+  heating: ["HVAC"],
+  insulation: ["General Contractor", "Home Repair", "HVAC"],
+  kitchen: ["General Contractor", "Plumbing", "Electrical"],
+  lawn: ["Landscaping"],
+  leak: ["Plumbing", "Roofing"],
+  lighting: ["Electrical"],
+  mower: ["Outdoor Power Equipment", "Farm Equipment"],
+  "no heat": ["HVAC"],
+  outlet: ["Electrical"],
+  paint: ["Painting", "Home Repair"],
+  painting: ["Painting", "Home Repair"],
+  patio: ["Landscaping", "General Contractor"],
+  pest: ["Pest Control"],
+  plumber: ["Plumbing"],
+  plumbing: ["Plumbing"],
+  porch: ["General Contractor", "Home Repair"],
+  pressure: ["Pressure Washing"],
+  "pressure washing": ["Pressure Washing"],
+  pump: ["Plumbing", "Septic", "Drilling"],
+  renovation: ["General Contractor", "Home Repair"],
+  renovations: ["General Contractor", "Home Repair"],
+  repair: ["Home Repair", "General Contractor"],
+  road: ["Excavation", "Concrete"],
+  roof: ["Roofing"],
+  roofer: ["Roofing"],
+  roofing: ["Roofing"],
+  septic: ["Septic"],
+  shed: ["General Contractor", "Home Repair"],
+  siding: ["Roofing", "General Contractor", "Home Repair"],
+  snow: ["Snow Removal"],
+  "snow clearing": ["Snow Removal"],
+  "snow removal": ["Snow Removal"],
+  stone: ["Landscaping", "Building Supplies", "Excavation"],
+  stump: ["Tree Service", "Landscaping"],
+  tile: ["General Contractor", "Home Repair"],
+  toilet: ["Plumbing"],
+  tractor: ["Farm Equipment", "Outdoor Power Equipment"],
+  tree: ["Tree Service", "Landscaping"],
+  "tree down": ["Tree Service", "Snow Removal"],
+  trench: ["Excavation"],
+  truck: ["Logistics", "Towing"],
+  waste: ["Waste Removal"],
+  water: ["Plumbing", "Septic", "Drilling"],
+  waterproofing: ["General Contractor", "Plumbing", "Home Repair"],
+  well: ["Drilling", "Plumbing"],
+  window: ["General Contractor", "Home Repair"],
+  wiring: ["Electrical"],
+  yard: ["Landscaping", "Waste Removal"],
+};
+
 const localAreaConfig = {
   Dundas: {
     "South Dundas": ["Morrisburg", "Iroquois", "Williamsburg", "Brinston", "Matilda", "Riverside Heights", "Dixons Corners"],
@@ -491,6 +578,7 @@ function applyFilters() {
   const searchText = state.service.trim().toLowerCase();
   const townText = state.town.trim().toLowerCase();
   const categoryText = state.category.trim().toLowerCase();
+  const searchCategories = categoriesForSearch(searchText);
 
   state.filtered = state.rows.filter((row) => {
     const haystack = [
@@ -508,7 +596,8 @@ function applyFilters() {
       .join(" ")
       .toLowerCase();
 
-    const serviceMatch = !searchText || haystack.includes(searchText);
+    const keywordCategoryMatch = searchCategories.includes(row.displayCategory);
+    const serviceMatch = !searchText || haystack.includes(searchText) || keywordCategoryMatch;
     const categoryMatch = !categoryText || haystack.includes(categoryText) || row.displayCategory.toLowerCase() === categoryText;
     const townMatch = !townText || haystack.includes(townText);
     const confidenceMatch = !state.confidence || row.confidence === state.confidence;
@@ -539,11 +628,92 @@ function compareRows(a, b) {
 
 function rowPriority(row) {
   let score = 0;
+  const searchText = state.service.trim().toLowerCase();
+  const searchCategories = categoriesForSearch(searchText);
+  if (searchText && rowSearchHaystack(row).includes(searchText)) score += 220;
+  if (searchCategories.includes(row.displayCategory)) score += 150;
   if (state.region && row.local_area === state.region) score += 100;
   if (state.town && rowMatchesTown(row, state.town)) score += 120;
   if (row.sourceVerified) score += 10;
   if (row.availableToday) score += 4;
   return score;
+}
+
+function rowSearchHaystack(row) {
+  return [
+    row.name,
+    row.primary_category,
+    row.secondary_categories,
+    row.town,
+    row.county,
+    row.local_area,
+    row.service_area_notes,
+    row.notes,
+    row.displayCategory,
+    row.serviceAreas.join(" "),
+  ].join(" ").toLowerCase();
+}
+
+function categoriesForSearch(searchText) {
+  const normalizedSearch = normalizeSearchText(searchText);
+  if (!normalizedSearch) return [];
+
+  const matches = new Set();
+  Object.entries(searchKeywordMap).forEach(([keyword, categories]) => {
+    if (keywordMatchesSearch(keyword, normalizedSearch)) {
+      categories.forEach((category) => matches.add(category));
+    }
+  });
+
+  return Array.from(matches);
+}
+
+function keywordMatchesSearch(keyword, searchText) {
+  const normalizedKeyword = normalizeSearchText(keyword);
+  if (!normalizedKeyword || !searchText) return false;
+  if (searchText.includes(normalizedKeyword) || normalizedKeyword.includes(searchText)) return true;
+
+  const keywordWords = normalizedKeyword.split(" ");
+  const searchWords = searchText.split(" ");
+  return keywordWords.some((keywordWord) =>
+    searchWords.some((searchWord) => isFuzzyWordMatch(keywordWord, searchWord)),
+  );
+}
+
+function isFuzzyWordMatch(keywordWord, searchWord) {
+  if (!keywordWord || !searchWord) return false;
+  if (keywordWord.length < 4 || searchWord.length < 4) return false;
+  if (keywordWord[0] !== searchWord[0]) return false;
+  const distance = levenshteinDistance(keywordWord, searchWord);
+  const limit = Math.max(keywordWord.length, searchWord.length) >= 7 ? 2 : 1;
+  return distance <= limit;
+}
+
+function levenshteinDistance(a, b) {
+  const previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+
+  for (let i = 1; i <= a.length; i += 1) {
+    const current = [i];
+    for (let j = 1; j <= b.length; j += 1) {
+      const substitutionCost = a[i - 1] === b[j - 1] ? 0 : 1;
+      current[j] = Math.min(
+        previous[j] + 1,
+        current[j - 1] + 1,
+        previous[j - 1] + substitutionCost,
+      );
+    }
+    previous.splice(0, previous.length, ...current);
+  }
+
+  return previous[b.length];
+}
+
+function normalizeSearchText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
 }
 
 function rowMatchesTown(row, town) {
