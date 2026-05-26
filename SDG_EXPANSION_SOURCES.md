@@ -4,7 +4,7 @@
 
 BuiltLocal now uses an SD&G seed file with county and local-area fields so the prototype can feel local while covering Stormont, Dundas and Glengarry.
 
-Current seed total: 168 public listings.
+Current seed total: 208 public listings.
 
 Local-area coverage:
 
@@ -15,6 +15,17 @@ Local-area coverage:
 - South Glengarry: Choose Cornwall PDF and South Glengarry public business references.
 - North Glengarry: public council/procurement references for relevant contractors.
 - Cornwall & Area: Choose Cornwall PDF, Cornwall-area public directories, and provider/public profiles.
+
+## Targeted Follow-Up Pass
+
+A second pass focused on areas that were underrepresented after the first SD&G import:
+
+- North Stormont: added more municipal-directory contractors for electrical, excavation, landscaping/materials, snow/plowing, and tree/property services.
+- North Glengarry: added more Alexandria/Maxville public listings for plumbing, HVAC, electrical, roofing, and general contracting.
+- South Glengarry: added more Lancaster, South Lancaster, Williamstown, Green Valley, Martintown, and North Lancaster public listings.
+- Cornwall & Area: added more public electrical contractor listings where they serve Cornwall/SD&G.
+
+The follow-up used YellowPages public listing/search pages and North Stormont municipal business directory entries, still importing only base public facts and no review text.
 
 ## Trusted Source Rules
 
@@ -44,4 +55,5 @@ These fields support the prototype's county selector, North/South local-area sel
 - `https://choosecornwall.ca/resources/attachment/cornwall-business-directory/`
 - `https://www.southglengarry.com/business-and-development/`
 - `https://www.northglengarry.ca/`
+- YellowPages public search/listing pages for Alexandria, Maxville, Lancaster, South Glengarry, North Glengarry, Moose Creek, Finch, Cornwall, and related SD&G trades searches.
 - Existing South Dundas, YellowPages, BBB, and provider website sources already present in the original seed.
