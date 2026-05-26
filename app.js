@@ -4,7 +4,9 @@ const state = {
   selected: null,
   category: "",
   service: "",
-  area: "",
+  county: "Dundas",
+  localArea: "South Dundas",
+  town: "",
   confidence: "",
   availableToday: false,
   map: null,
@@ -149,18 +151,40 @@ const preferredCategories = [
   "Waste Removal",
 ];
 
-const southDundasAreas = [
-  "Morrisburg",
-  "Iroquois",
-  "Williamsburg",
-  "Brinston",
-  "Matilda",
-  "Riverside Heights",
-  "Dixons Corners",
-];
+const localAreaConfig = {
+  Dundas: {
+    "South Dundas": ["Morrisburg", "Iroquois", "Williamsburg", "Brinston", "Matilda", "Riverside Heights", "Dixons Corners"],
+    "North Dundas": ["Winchester", "Chesterville", "Morewood", "Mountain", "South Mountain"],
+  },
+  Stormont: {
+    "South Stormont": ["Long Sault", "Ingleside", "Newington", "Lunenburg", "St. Andrews West"],
+    "North Stormont": ["Finch", "Berwick", "Avonmore", "Moose Creek", "Crysler"],
+  },
+  Glengarry: {
+    "South Glengarry": ["Lancaster", "South Lancaster", "Summerstown", "Bainsville", "Green Valley", "Williamstown"],
+    "North Glengarry": ["Alexandria", "Maxville", "Glen Robertson", "Apple Hill", "Dunvegan"],
+  },
+  Cornwall: {
+    "Cornwall & Area": ["Cornwall"],
+  },
+};
+
+const localAreaToCounty = Object.entries(localAreaConfig).reduce((acc, [county, areas]) => {
+  Object.keys(areas).forEach((area) => {
+    acc[area] = county;
+  });
+  return acc;
+}, {});
 
 const townCenters = {
+  "SD&G": { lat: 45.0902, lng: -74.8359 },
   "South Dundas": { lat: 44.9104, lng: -75.2139 },
+  "North Dundas": { lat: 45.091, lng: -75.352 },
+  "South Stormont": { lat: 45.0417, lng: -74.9966 },
+  "North Stormont": { lat: 45.1976, lng: -74.986 },
+  "South Glengarry": { lat: 45.151, lng: -74.583 },
+  "North Glengarry": { lat: 45.312, lng: -74.635 },
+  "Cornwall & Area": { lat: 45.0213, lng: -74.7303 },
   Morrisburg: { lat: 44.8997, lng: -75.1857 },
   Iroquois: { lat: 44.8497, lng: -75.3167 },
   Williamsburg: { lat: 44.9722, lng: -75.2447 },
@@ -168,6 +192,33 @@ const townCenters = {
   Matilda: { lat: 44.8759, lng: -75.2931 },
   "Riverside Heights": { lat: 44.9288, lng: -75.1398 },
   "Dixons Corners": { lat: 44.8679, lng: -75.2576 },
+  Winchester: { lat: 45.0915, lng: -75.3523 },
+  Chesterville: { lat: 45.1033, lng: -75.2327 },
+  Morewood: { lat: 45.0718, lng: -75.2469 },
+  Mountain: { lat: 45.0592, lng: -75.4728 },
+  "South Mountain": { lat: 44.9899, lng: -75.4522 },
+  "Long Sault": { lat: 45.031, lng: -74.8956 },
+  Ingleside: { lat: 44.9982, lng: -74.9895 },
+  Newington: { lat: 45.1142, lng: -75.0009 },
+  Lunenburg: { lat: 45.0717, lng: -74.929 },
+  "St. Andrews West": { lat: 45.0801, lng: -74.8034 },
+  Finch: { lat: 45.1469, lng: -75.0863 },
+  Berwick: { lat: 45.184, lng: -75.0524 },
+  Avonmore: { lat: 45.1736, lng: -74.9689 },
+  "Moose Creek": { lat: 45.2594, lng: -74.96 },
+  Crysler: { lat: 45.2208, lng: -75.1533 },
+  Lancaster: { lat: 45.1418, lng: -74.4976 },
+  "South Lancaster": { lat: 45.1252, lng: -74.491 },
+  Summerstown: { lat: 45.0966, lng: -74.5729 },
+  Bainsville: { lat: 45.182, lng: -74.4149 },
+  "Green Valley": { lat: 45.2556, lng: -74.5986 },
+  Williamstown: { lat: 45.1469, lng: -74.5848 },
+  Alexandria: { lat: 45.3127, lng: -74.6382 },
+  Maxville: { lat: 45.2928, lng: -74.8538 },
+  "Glen Robertson": { lat: 45.3585, lng: -74.5036 },
+  "Apple Hill": { lat: 45.2239, lng: -74.7814 },
+  Dunvegan: { lat: 45.3639, lng: -74.8211 },
+  Cornwall: { lat: 45.0213, lng: -74.7303 },
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -180,7 +231,7 @@ async function init() {
   initIcons();
 
   try {
-    const response = await fetch("./south-dundas-seed-listings.csv");
+    const response = await fetch("./sdg-seed-listings.csv");
     const csv = await response.text();
     state.rows = enrichRows(parseCsv(csv));
   } catch (error) {
@@ -188,6 +239,7 @@ async function init() {
     state.rows = [];
   }
 
+  syncRegionControls();
   initMap();
   applyFilters();
   restoreHashPosition();
@@ -245,14 +297,18 @@ function enrichRows(rows) {
     const sourceVerified = row.confidence === "High";
     const claimed = false;
     const localTown = row.town || "South Dundas";
-    const areas = serviceAreasFor(localTown);
-    const isLocal = localTown.match(/Morrisburg|Iroquois|Williamsburg|Brinston|Matilda|Riverside Heights|Dixons Corners/i);
-    const serviceRadiusKm = isLocal ? 30 : 55;
-    const geo = geoForRow(row, localTown, seed, index, isLocal);
+    const county = row.county || countyForLocalArea(row.local_area) || "Dundas";
+    const localArea = row.local_area || localAreaForTown(localTown) || "South Dundas";
+    const areas = serviceAreasFor(row, localArea);
+    const isLocal = areas.some((area) => area.toLowerCase() === localTown.toLowerCase());
+    const serviceRadiusKm = localArea === "Cornwall & Area" || /serves sd&g/i.test(row.service_area_notes || "") ? 55 : 30;
+    const geo = geoForRow(row, localTown, localArea, seed, index, isLocal);
 
     return {
       ...row,
       id: `${slugify(row.name)}-${index}`,
+      county,
+      local_area: localArea,
       displayCategory: primary,
       tags: buildTags(row, primary),
       image: imageForCategory(primary, row.name),
@@ -261,7 +317,7 @@ function enrichRows(rows) {
       claimed,
       sourceVerified,
       availableToday: seed % 3 !== 0,
-      distance: isLocal ? "0-30 km" : "Serves region",
+      distance: serviceRadiusKm === 30 ? "0-30 km" : "Serves region",
       serviceAreas: areas,
       serviceText: areas.slice(0, 4).join(", "),
       serviceRadiusKm,
@@ -308,16 +364,34 @@ function imageForCategory(category, businessName) {
   return pool[hashString(businessName || category) % pool.length];
 }
 
-function serviceAreasFor(town) {
-  const cleanTown = town || "";
-  if (cleanTown.match(/Morrisburg|Iroquois|Williamsburg|Brinston/i)) {
-    return southDundasAreas;
-  }
-  return ["South Dundas", "Morrisburg", "Iroquois", "Williamsburg", cleanTown].filter(Boolean);
+function countyForLocalArea(localArea) {
+  return localAreaToCounty[localArea] || "";
 }
 
-function geoForRow(row, town, seed, index, isLocal) {
-  const base = isLocal ? townCenterFor(town) : townCenters["South Dundas"];
+function localAreaForTown(town) {
+  const cleanTown = town || "";
+  const match = Object.entries(localAreaConfig).flatMap(([county, areas]) =>
+    Object.entries(areas).map(([localArea, towns]) => ({ county, localArea, towns })),
+  ).find(({ localArea, towns }) =>
+    localArea.toLowerCase() === cleanTown.toLowerCase()
+    || towns.some((item) => item.toLowerCase() === cleanTown.toLowerCase()),
+  );
+
+  return match?.localArea || "";
+}
+
+function serviceAreasFor(row, localArea) {
+  const localTowns = localAreaConfig[countyForLocalArea(localArea)]?.[localArea] || [];
+  const areas = [localArea].concat(localTowns);
+  if (row.town && !areas.includes(row.town)) areas.push(row.town);
+  if (/serves sd&g/i.test(row.service_area_notes || "")) {
+    areas.push("SD&G", "Stormont", "Dundas", "Glengarry", "Cornwall");
+  }
+  return areas.filter(Boolean);
+}
+
+function geoForRow(row, town, localArea, seed, index, isLocal) {
+  const base = isLocal ? townCenterFor(town, localArea) : townCenterFor(localArea);
   const jitter = jitterFor(seed, index);
 
   return {
@@ -325,18 +399,18 @@ function geoForRow(row, town, seed, index, isLocal) {
     lng: base.lng + jitter.lng,
     precision: isLocal ? "Approximate town pin" : "Regional coverage marker",
     label: isLocal
-      ? `Approximate ${town || "South Dundas"} location`
-      : `${row.town || "Regional"} provider serving South Dundas`,
+      ? `Approximate ${town || localArea} location`
+      : `${row.town || "Regional"} provider serving ${localArea}`,
   };
 }
 
-function townCenterFor(town) {
-  const cleanTown = town || "South Dundas";
+function townCenterFor(town, fallback = state.localArea) {
+  const cleanTown = town || fallback || "South Dundas";
   const direct = townCenters[cleanTown];
   if (direct) return direct;
 
   const match = Object.entries(townCenters).find(([name]) => cleanTown.toLowerCase().includes(name.toLowerCase()));
-  return match ? match[1] : townCenters["South Dundas"];
+  return match ? match[1] : townCenters[fallback] || townCenters["South Dundas"];
 }
 
 function jitterFor(seed, index) {
@@ -351,7 +425,8 @@ function jitterFor(seed, index) {
 
 function renderCategories() {
   const grid = $("#categoryGrid");
-  const counts = state.rows.reduce((acc, row) => {
+  const scopedRows = rowsForCurrentLocalArea();
+  const counts = scopedRows.reduce((acc, row) => {
     acc[row.displayCategory] = (acc[row.displayCategory] || 0) + 1;
     return acc;
   }, {});
@@ -369,7 +444,7 @@ function renderCategories() {
   const hiddenCount = Math.max(0, rankedNames.length - visibleNames.length);
   const categories = visibleNames.map((name) => ({ name, count: counts[name], filter: name }));
 
-  $("#categoryCoverage").textContent = `${state.rows.length} profiles across ${Object.keys(counts).length} categories`;
+  $("#categoryCoverage").textContent = `${scopedRows.length} profiles in ${state.localArea}`;
   $("[data-toggle-categories]").textContent = state.categoriesExpanded
     ? "Show popular"
     : `See all ${Object.keys(counts).length} categories`;
@@ -404,16 +479,20 @@ function renderCategories() {
 }
 
 function applyFilters() {
+  syncRegionControls();
   const searchText = state.service.trim().toLowerCase();
-  const areaText = state.area.trim().toLowerCase();
+  const townText = state.town.trim().toLowerCase();
   const categoryText = state.category.trim().toLowerCase();
 
-  state.filtered = state.rows.filter((row) => {
+  state.filtered = rowsForCurrentLocalArea().filter((row) => {
     const haystack = [
       row.name,
       row.primary_category,
       row.secondary_categories,
       row.town,
+      row.county,
+      row.local_area,
+      row.service_area_notes,
       row.notes,
       row.displayCategory,
       row.serviceAreas.join(" "),
@@ -423,17 +502,17 @@ function applyFilters() {
 
     const serviceMatch = !searchText || haystack.includes(searchText);
     const categoryMatch = !categoryText || haystack.includes(categoryText) || row.displayCategory.toLowerCase() === categoryText;
-    const areaMatch = !areaText || haystack.includes(areaText);
+    const townMatch = !townText || haystack.includes(townText);
     const confidenceMatch = !state.confidence || row.confidence === state.confidence;
     const availabilityMatch = !state.availableToday || row.availableToday;
 
-    return serviceMatch && categoryMatch && areaMatch && confidenceMatch && availabilityMatch;
+    return serviceMatch && categoryMatch && townMatch && confidenceMatch && availabilityMatch;
   });
 
   if (!state.filtered.length && (state.service || state.category)) {
-    state.filtered = state.rows.filter((row) => {
-      if (!state.area) return true;
-      return row.serviceAreas.join(" ").toLowerCase().includes(areaText);
+    state.filtered = rowsForCurrentLocalArea().filter((row) => {
+      if (!state.town) return true;
+      return row.serviceAreas.join(" ").toLowerCase().includes(townText);
     });
   }
 
@@ -442,6 +521,10 @@ function applyFilters() {
   renderCategories();
   updateSummary();
   updateMap();
+}
+
+function rowsForCurrentLocalArea() {
+  return state.rows.filter((row) => row.county === state.county && row.local_area === state.localArea);
 }
 
 function syncSelectedWithFilter() {
@@ -520,8 +603,8 @@ function updateProfile(row) {
 }
 
 function updateSummary() {
-  const total = state.filtered.length || state.rows.length;
-  const area = state.area || "South Dundas";
+  const total = state.filtered.length || rowsForCurrentLocalArea().length;
+  const area = state.town || state.localArea;
   const service = state.category || state.service || "service";
   $("#mapSummary").textContent = `${total} ${service.toLowerCase()} profiles near ${area}`;
   $("#mapFootnote").textContent = state.selected
@@ -533,7 +616,7 @@ function initMap() {
   if (!window.L || !$("#directoryMap")) return;
 
   state.map = window.L.map("directoryMap", {
-    center: [townCenters["South Dundas"].lat, townCenters["South Dundas"].lng],
+    center: [townCenters[state.localArea].lat, townCenters[state.localArea].lng],
     zoom: 11,
     scrollWheelZoom: false,
   });
@@ -581,7 +664,8 @@ function updateMap() {
   } else if (bounds.length === 1) {
     state.map.setView(bounds[0], 12);
   } else {
-    state.map.setView([townCenters["South Dundas"].lat, townCenters["South Dundas"].lng], 11);
+    const center = townCenterFor(state.localArea);
+    state.map.setView([center.lat, center.lng], 11);
   }
 
   drawServiceCircle(state.selected);
@@ -675,17 +759,67 @@ function categoryInitials(category) {
   return words.slice(0, 2).map((word) => word[0]).join("").toUpperCase();
 }
 
+function syncRegionControls() {
+  const localAreas = Object.keys(localAreaConfig[state.county] || localAreaConfig.Dundas);
+  if (!localAreas.includes(state.localArea)) {
+    state.localArea = localAreas[0];
+  }
+
+  $$("[data-county-select]").forEach((select) => {
+    select.value = state.county;
+  });
+
+  $$("[data-local-area-select]").forEach((select) => {
+    select.innerHTML = localAreas
+      .map((area) => `<option value="${escapeHtml(area)}">${escapeHtml(area)}</option>`)
+      .join("");
+    select.value = state.localArea;
+  });
+
+  const towns = localAreaConfig[state.county]?.[state.localArea] || [];
+  $("#filterArea").innerHTML = [`<option value="">Anywhere in ${escapeHtml(state.localArea)}</option>`]
+    .concat(towns.map((town) => `<option value="${escapeHtml(town)}">${escapeHtml(town)}</option>`))
+    .join("");
+  $("#filterArea").value = state.town;
+  $("#directory-title").textContent = `Find a service in ${state.localArea}`;
+  $("#sortLabel").textContent = state.town ? `Near: ${state.town}` : `Area: ${state.localArea}`;
+}
+
 function wireEvents() {
   $("#heroSearch").addEventListener("submit", (event) => {
     event.preventDefault();
     state.service = $("#serviceSearch").value;
-    state.area = $("#areaSearch").value;
+    state.county = $("#countySearch").value;
+    state.localArea = $("#localAreaSearch").value;
+    state.town = "";
     $("#filterService").value = state.service;
-    $("#filterArea").value = state.area;
+    syncRegionControls();
     state.category = "";
     applyFilters();
     setDirectoryView("list");
     scrollToResults();
+  });
+
+  $$("[data-county-select]").forEach((select) => {
+    select.addEventListener("change", (event) => {
+      state.county = event.target.value;
+      state.localArea = Object.keys(localAreaConfig[state.county])[0];
+      state.town = "";
+      state.category = "";
+      syncRegionControls();
+      applyFilters();
+    });
+  });
+
+  $$("[data-local-area-select]").forEach((select) => {
+    select.addEventListener("change", (event) => {
+      state.localArea = event.target.value;
+      state.county = countyForLocalArea(state.localArea) || state.county;
+      state.town = "";
+      state.category = "";
+      syncRegionControls();
+      applyFilters();
+    });
   });
 
   $("#filterService").addEventListener("input", (event) => {
@@ -694,7 +828,7 @@ function wireEvents() {
   });
 
   $("#filterArea").addEventListener("change", (event) => {
-    state.area = event.target.value;
+    state.town = event.target.value;
     applyFilters();
   });
 
@@ -759,15 +893,14 @@ function wireEvents() {
     if (clearButton) {
       state.category = "";
       state.service = "";
-      state.area = "";
+      state.town = "";
       state.confidence = "";
       state.availableToday = false;
       $("#serviceSearch").value = "";
-      $("#areaSearch").value = "";
       $("#filterService").value = "";
-      $("#filterArea").value = "";
       $("#filterType").value = "";
       $("#openToday").checked = false;
+      syncRegionControls();
       applyFilters();
     }
 

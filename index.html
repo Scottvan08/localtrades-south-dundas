@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>BuiltLocal South Dundas</title>
+    <title>BuiltLocal SD&G</title>
     <link rel="preconnect" href="https://images.unsplash.com" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
@@ -19,7 +19,7 @@
           </span>
           <span>
             <strong>BuiltLocal</strong>
-            <small>South Dundas & Rural Area</small>
+            <small>SD&amp;G Rural Area</small>
           </span>
         </a>
 
@@ -41,11 +41,11 @@
 
       <main>
         <section class="hero" id="home" aria-labelledby="hero-title">
-          <div class="hero-bg" role="img" aria-label="South Dundas lakefront home"></div>
+          <div class="hero-bg" role="img" aria-label="SD&G rural home and contractor truck"></div>
           <div class="hero-content">
             <div class="eyebrow">
               <i data-lucide="map-pin"></i>
-              Morrisburg, Iroquois, Williamsburg, Brinston
+              Dundas, Stormont, Glengarry, Cornwall &amp; Area
             </div>
             <h1 id="hero-title">Find local <span class="mobile-line">contractors who</span> <span class="mobile-line">actually respond.</span></h1>
             <p>Trusted trades, rural service areas, <span class="mobile-line">and local recommendations.</span></p>
@@ -56,15 +56,17 @@
                 <i data-lucide="search"></i>
                 <input id="serviceSearch" name="service" type="search" placeholder="What do you need help with?" autocomplete="off" />
               </div>
-              <label class="sr-only" for="areaSearch">Area</label>
-              <select id="areaSearch" name="area">
-                <option value="">Anywhere in South Dundas</option>
-                <option>Morrisburg</option>
-                <option>Iroquois</option>
-                <option>Williamsburg</option>
-                <option>Brinston</option>
-                <option>Matilda</option>
-                <option>Riverside Heights</option>
+              <label class="sr-only" for="countySearch">County</label>
+              <select id="countySearch" name="county" data-county-select>
+                <option value="Dundas">Dundas</option>
+                <option value="Stormont">Stormont</option>
+                <option value="Glengarry">Glengarry</option>
+                <option value="Cornwall">Cornwall &amp; Area</option>
+              </select>
+              <label class="sr-only" for="localAreaSearch">Local area</label>
+              <select id="localAreaSearch" name="localArea" data-local-area-select>
+                <option value="South Dundas">South Dundas</option>
+                <option value="North Dundas">North Dundas</option>
               </select>
               <button class="primary-button" type="submit">
                 <i data-lucide="search"></i>
@@ -127,15 +129,25 @@
                 </div>
               </label>
               <label>
+                County
+                <select id="filterCounty" data-county-select>
+                  <option value="Dundas">Dundas</option>
+                  <option value="Stormont">Stormont</option>
+                  <option value="Glengarry">Glengarry</option>
+                  <option value="Cornwall">Cornwall &amp; Area</option>
+                </select>
+              </label>
+              <label>
+                Area
+                <select id="filterLocalArea" data-local-area-select>
+                  <option value="South Dundas">South Dundas</option>
+                  <option value="North Dundas">North Dundas</option>
+                </select>
+              </label>
+              <label>
                 Near
                 <select id="filterArea">
-                  <option value="">South Dundas</option>
-                  <option>Morrisburg</option>
-                  <option>Iroquois</option>
-                  <option>Williamsburg</option>
-                  <option>Brinston</option>
-                  <option>Matilda</option>
-                  <option>Riverside Heights</option>
+                  <option value="">Anywhere in South Dundas</option>
                 </select>
               </label>
               <label>

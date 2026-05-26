@@ -1,8 +1,8 @@
-# BuiltLocal South Dundas
+# BuiltLocal SD&G
 
-Prototype for a rural-first local services directory for South Dundas.
+Prototype for a rural-first local services directory for Stormont, Dundas and Glengarry.
 
-The app helps residents find local trades, contractors, and service providers who actually serve the surrounding rural area. It is currently a static prototype using a CSV seed database, Leaflet maps, category filtering, contractor profiles, quote/claim modals, and mock Pro/business access.
+The app helps residents find local trades, contractors, and service providers who actually serve the surrounding rural area. It is currently a static prototype using an SD&G CSV seed database, Leaflet maps, county/local-area filtering, contractor profiles, quote/claim modals, and mock Pro/business access.
 
 ## Local Preview
 
