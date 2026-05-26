@@ -377,13 +377,15 @@ function parseCsv(csv) {
 }
 
 function enrichRows(rows) {
-  return rows.map((row, index) => {
+  const prototypeRows = rows.concat(demoBusinessRow());
+
+  return prototypeRows.map((row, index) => {
     const primary = normalizePrimaryCategory(row.primary_category, row.secondary_categories);
     const seed = hashString(row.name);
     const replies = 12 + (seed % 47);
     const jobs = 18 + (seed % 126);
     const sourceVerified = row.confidence === "High";
-    const claimed = false;
+    const claimed = row.source === "BuiltLocal demo";
     const localTown = row.town || "South Dundas";
     const county = row.county || countyForLocalArea(row.local_area) || "Dundas";
     const localArea = row.local_area || localAreaForTown(localTown) || "South Dundas";
@@ -416,6 +418,26 @@ function enrichRows(rows) {
       publishExactLocation: false,
     };
   });
+}
+
+function demoBusinessRow() {
+  return {
+    name: "BuiltLocal Demo Co.",
+    primary_category: "General Contractor",
+    secondary_categories: "Fencing; decks; home repair; renovations; rural property maintenance",
+    town: "Morrisburg",
+    address: "",
+    phone: "613-555-0198",
+    email: "demo@builtlocal.ca",
+    website: "",
+    source: "BuiltLocal demo",
+    source_url: "",
+    confidence: "Medium",
+    notes: "Prototype demo business for testing claimed profile and Pro Dashboard flow.",
+    county: "Dundas",
+    local_area: "South Dundas",
+    service_area_notes: "Demo profile serving SD&G",
+  };
 }
 
 function normalizePrimaryCategory(primary, secondary) {
@@ -757,7 +779,7 @@ function renderResults() {
         <span class="listing-body">
           <span class="listing-head">
             <strong>${escapeHtml(row.name)}</strong>
-            ${row.sourceVerified ? '<span class="verified-dot"><i data-lucide="check"></i></span>' : ""}
+            ${row.sourceVerified || row.claimed ? '<span class="verified-dot"><i data-lucide="check"></i></span>' : ""}
           </span>
           <span class="listing-meta">
             <span><i data-lucide="message-square-heart"></i>No local reviews yet</span>
@@ -766,7 +788,7 @@ function renderResults() {
           <span class="listing-category">${escapeHtml(row.displayCategory)}</span>
           <span class="listing-foot">
             <span><i data-lucide="map-pin"></i>${escapeHtml(row.town || "South Dundas")}</span>
-            <span><i data-lucide="badge-check"></i>${row.sourceVerified ? "Verified source" : "Needs source check"}</span>
+            <span><i data-lucide="badge-check"></i>${row.claimed ? "Claimed demo" : row.sourceVerified ? "Verified source" : "Needs source check"}</span>
           </span>
         </span>
       </button>
@@ -799,7 +821,11 @@ function updateProfile(row) {
   $("#profileDistance").textContent = row.distance;
   $("#profilePhone").textContent = row.phone || "Phone not yet verified";
   $("#profileAreas").textContent = `Serves ${row.serviceText}`;
-  $("#profileClaim").textContent = row.sourceVerified ? "Verified public source - unclaimed profile" : "Unclaimed public listing";
+  $("#profileClaim").textContent = row.claimed
+    ? "Claimed demo profile for Pro Dashboard preview"
+    : row.sourceVerified
+      ? "Verified public source - unclaimed profile"
+      : "Unclaimed public listing";
   $("#profileJobs").textContent = `Completed ${row.jobs} local jobs nearby`;
   $("#verifiedPill").style.display = row.sourceVerified ? "inline-flex" : "none";
   $("#verifiedPill").innerHTML = '<i data-lucide="badge-check"></i> Verified Source';
