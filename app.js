@@ -105,6 +105,7 @@ const iconByCategory = {
   "Home Repair": "house-plus",
   "Pressure Washing": "waves",
   Painting: "paint-roller",
+  Paving: "construction",
   Millwright: "settings",
   Installation: "panel-top",
   "Outdoor Power Equipment": "tractor",
@@ -166,7 +167,8 @@ const searchKeywordMap = {
   contractor: ["General Contractor"],
   deck: ["General Contractor", "Home Repair", "Landscaping"],
   demolition: ["Excavation", "Waste Removal", "General Contractor"],
-  driveway: ["Excavation", "Landscaping", "Snow Removal"],
+  driveway: ["Paving", "Excavation", "Landscaping", "Snow Removal"],
+  "driveway paving": ["Paving"],
   drywall: ["Home Repair", "General Contractor", "Painting"],
   duct: ["HVAC"],
   eavestrough: ["Roofing", "Home Repair"],
@@ -198,7 +200,11 @@ const searchKeywordMap = {
   outlet: ["Electrical"],
   paint: ["Painting", "Home Repair"],
   painting: ["Painting", "Home Repair"],
+  asphalt: ["Paving"],
   patio: ["Landscaping", "General Contractor"],
+  pavement: ["Paving"],
+  paving: ["Paving"],
+  "parking lot": ["Paving"],
   pest: ["Pest Control"],
   plumber: ["Plumbing"],
   plumbing: ["Plumbing"],
@@ -213,6 +219,7 @@ const searchKeywordMap = {
   roof: ["Roofing"],
   roofer: ["Roofing"],
   roofing: ["Roofing"],
+  sealcoating: ["Paving"],
   septic: ["Septic"],
   shed: ["General Contractor", "Home Repair"],
   siding: ["Roofing", "General Contractor", "Home Repair"],
@@ -443,6 +450,7 @@ function demoBusinessRow() {
 
 function normalizePrimaryCategory(primary, secondary) {
   const haystack = `${primary} ${secondary}`.toLowerCase();
+  if (haystack.includes("paving") || haystack.includes("asphalt") || haystack.includes("pavement")) return "Paving";
   if (haystack.includes("snow")) return "Snow Removal";
   if (haystack.includes("septic")) return "Excavation";
   if (haystack.includes("roof")) return "Roofing";
@@ -629,7 +637,7 @@ function applyFilters() {
     return serviceMatch && categoryMatch && townMatch && confidenceMatch && availabilityMatch;
   }).sort(compareRows);
 
-  if (!state.filtered.length && (state.service || state.category)) {
+  if (!state.filtered.length && state.category && !state.service) {
     state.filtered = state.rows.filter((row) => {
       if (!state.town) return true;
       return row.serviceAreas.join(" ").toLowerCase().includes(townText);
@@ -685,9 +693,11 @@ function rowSearchScore(row, searchText) {
   const compactSearch = normalizedSearch.replace(/\s+/g, "");
   const compactName = normalizedName.replace(/\s+/g, "");
   const nameTokens = normalizedName.split(" ").filter(Boolean);
+  const acronym = nameTokens.map((token) => token[0]).join("");
 
   if (normalizedName === normalizedSearch) return 380;
   if (compactSearch.length >= 4 && compactName.includes(compactSearch)) return 350;
+  if (normalizedSearch.length >= 2 && acronym.startsWith(normalizedSearch)) return 340;
   if (normalizedName.startsWith(normalizedSearch)) return 330;
   if (nameTokens.some((token) => token === normalizedSearch)) return 315;
   if (normalizedSearch.length >= 2 && nameTokens.some((token) => token.startsWith(normalizedSearch))) return 300;
