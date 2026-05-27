@@ -155,6 +155,8 @@ function wireEvents() {
     const confirmRejectButton = event.target.closest("[data-confirm-reject]");
     const cancelRejectButton = event.target.closest("[data-cancel-reject]");
     const contactLeadButton = event.target.closest("[data-contact-lead]");
+    const openStatusButton = event.target.closest("[data-open-status-menu]");
+    const closeStatusButton = event.target.closest("[data-close-status-menu]");
 
     if (menuToggleButton) toggleProMenu();
     if (closeLeadActionsButton) closeLeadActionSheet();
@@ -163,6 +165,8 @@ function wireEvents() {
     if (rejectLeadButton) openRejectLeadDialog();
     if (confirmRejectButton) rejectSelectedLead();
     if (cancelRejectButton) closeRejectLeadDialog();
+    if (openStatusButton) openLeadStatusDialog();
+    if (closeStatusButton) closeLeadStatusDialog();
     if (statusChoiceButton) setSelectedLeadStatus(statusChoiceButton.dataset.statusChoice);
     if (leadFilterButton) {
       state.leadFilter = leadFilterButton.dataset.leadFilter;
@@ -312,6 +316,7 @@ function renderLeads() {
   leadsPanel?.classList.toggle("mobile-detail-open", state.mobileLeadOpen);
   $(".pro-main")?.classList.toggle("mobile-detail-open", state.mobileLeadOpen);
   renderLeadControls();
+  renderStatusDialog();
 
   $("#leadList").innerHTML = sortedLeads.length ? sortedLeads.map((lead) => `
     <button class="lead-item pro-lead-item${lead.id === state.selectedLeadId ? " active" : ""}${isActionableLead(lead) ? " is-actionable" : ""}${!lead.reviewedAt ? " is-unreviewed" : ""}" type="button" data-lead-id="${escapeHtml(lead.id)}">
@@ -348,47 +353,40 @@ function renderLeadControls() {
   $("#leadSort").value = state.leadSort;
 }
 
+function renderStatusDialog() {
+  const list = $("#statusChoiceList");
+  if (!list) return;
+  const selected = state.selectedLeadId ? state.leads.find((lead) => lead.id === state.selectedLeadId) : null;
+  list.innerHTML = PRIMARY_STATUSES.map((status) => `
+    <button class="status-choice-button ${statusClass(status)}${selected?.status === status ? " active" : ""}" type="button" data-status-choice="${escapeHtml(status)}">
+      <span class="status-dot"></span>
+      <span>
+        <strong>${escapeHtml(status)}</strong>
+        <small>${escapeHtml(statusHelpText(status))}</small>
+      </span>
+    </button>
+  `).join("");
+}
+
 function leadDetailHtml(lead) {
   const snapshot = lead.snapshot || {};
   const leadTypeLabel = lead.leadType === "direct" ? "Direct company request" : "SMS matching request";
-  const statusOptions = PRIMARY_STATUSES.includes(lead.status) ? PRIMARY_STATUSES : [lead.status, ...PRIMARY_STATUSES];
   return `
     <div class="detail-card">
       <button class="secondary-button compact mobile-back-leads" type="button" data-back-leads>
         <i data-lucide="arrow-left"></i>
         Back to leads
       </button>
-      <div class="lead-action-toolbar" aria-label="Lead actions">
-        <details class="lead-status-menu">
-          <summary class="lead-toolbar-button">
-            <i data-lucide="circle-dot"></i>
-            <span>Status</span>
-          </summary>
-          <div class="lead-status-options">
-            ${statusOptions.map((status) => `
-              <button class="${lead.status === status ? "active" : ""}" type="button" data-status-choice="${escapeHtml(status)}">
-                ${escapeHtml(status)}
-              </button>
-            `).join("")}
-          </div>
-        </details>
-        <button class="lead-toolbar-button" type="button" data-contact-lead>
-          <i data-lucide="phone"></i>
-          <span>Contact</span>
-        </button>
-        <button class="lead-toolbar-button" type="button" data-forward-contact>
-          <i data-lucide="share-2"></i>
-          <span>Forward</span>
-        </button>
-        <button class="lead-toolbar-button danger" type="button" data-reject-lead>
-          <i data-lucide="x-circle"></i>
-          <span>Reject</span>
-        </button>
-      </div>
       <p class="section-kicker">Lead detail</p>
       <div class="lead-detail-title">
-        <h2>${escapeHtml(lead.title)}</h2>
-        <em class="${statusClass(lead.status)}">${escapeHtml(lead.status)}</em>
+        <div>
+          <h2>${escapeHtml(lead.title)}</h2>
+          <span>${escapeHtml(lead.service)} in ${escapeHtml(lead.town)}</span>
+        </div>
+        <button class="lead-status-pill ${statusClass(lead.status)}" type="button" data-open-status-menu aria-label="Change lead status">
+          <span class="status-dot"></span>
+          <span>${escapeHtml(lead.status)}</span>
+        </button>
       </div>
       <span class="demo-mode-note">${escapeHtml(leadTypeLabel)}${lead.selectedProviderName ? ` for ${escapeHtml(lead.selectedProviderName)}` : ""}</span>
       <div class="job-snapshot-preview">
@@ -428,6 +426,24 @@ function leadDetailHtml(lead) {
       </label>
       <span class="inline-success no-margin" id="voiceNoteStatus" hidden>Listening...</span>
       <span class="inline-success" id="leadSaved" hidden>Lead saved.</span>
+      <nav class="lead-bottom-nav" aria-label="Lead actions">
+        <button type="button" data-open-status-menu>
+          <i data-lucide="activity"></i>
+          <span>Status</span>
+        </button>
+        <button type="button" data-contact-lead>
+          <i data-lucide="phone"></i>
+          <span>Contact</span>
+        </button>
+        <button type="button" data-forward-contact>
+          <i data-lucide="send"></i>
+          <span>Forward</span>
+        </button>
+        <button class="danger" type="button" data-reject-lead>
+          <i data-lucide="x-circle"></i>
+          <span>Reject</span>
+        </button>
+      </nav>
     </div>
   `;
 }
@@ -502,7 +518,7 @@ function markLeadReviewed(leadId) {
 }
 
 function isMobilePro() {
-  return window.matchMedia("(max-width: 760px)").matches;
+  return window.matchMedia("(max-width: 1040px)").matches;
 }
 
 function acceptSelectedLead() {
@@ -534,6 +550,7 @@ function saveSelectedLeadNote() {
 function setSelectedLeadStatus(status) {
   const selected = state.leads.find((lead) => lead.id === state.selectedLeadId);
   if (!selected || !status) return;
+  closeLeadStatusDialog();
   setLeadStatus(selected, status);
 }
 
@@ -563,6 +580,22 @@ function openRejectLeadDialog() {
 
 function closeRejectLeadDialog() {
   const dialog = $("#rejectLeadDialog");
+  if (!dialog) return;
+  if (typeof dialog.close === "function") dialog.close();
+  else dialog.removeAttribute("open");
+}
+
+function openLeadStatusDialog() {
+  renderStatusDialog();
+  const dialog = $("#leadStatusDialog");
+  if (!dialog) return;
+  if (typeof dialog.showModal === "function") dialog.showModal();
+  else dialog.setAttribute("open", "");
+  initIcons();
+}
+
+function closeLeadStatusDialog() {
+  const dialog = $("#leadStatusDialog");
   if (!dialog) return;
   if (typeof dialog.close === "function") dialog.close();
   else dialog.removeAttribute("open");
@@ -980,10 +1013,18 @@ function relativeDate(value) {
 }
 
 function statusClass(status) {
-  if (status === "Claimed" || status === "Contacted") return "blue";
-  if (status === "Handled") return "";
-  if (status === "Rejected") return "gold";
-  return "";
+  if (status === "Claimed") return "status-claimed";
+  if (status === "Contacted") return "status-contacted";
+  if (status === "Handled") return "status-handled";
+  if (status === "Rejected") return "status-rejected";
+  return "status-new";
+}
+
+function statusHelpText(status) {
+  if (status === "Claimed") return "You accepted it and are ready to reach out.";
+  if (status === "Contacted") return "You have spoken, texted, or emailed the resident.";
+  if (status === "Handled") return "Hide from Active while keeping it recoverable.";
+  return "Fresh lead that still needs attention.";
 }
 
 function flash(selector) {
