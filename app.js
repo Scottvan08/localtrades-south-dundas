@@ -827,7 +827,9 @@ function updateProfile(row) {
     : row.sourceVerified
       ? "Verified public source - unclaimed profile"
       : "Unclaimed public listing";
-  $("#profileJobs").textContent = `Completed ${row.jobs} local jobs nearby`;
+  $("#profileJobs").textContent = row.claimed
+    ? "Claimed profile. Project history can be added in BuiltLocal Pro."
+    : "Public listing. Project history appears after this business is claimed.";
   $("#verifiedPill").style.display = row.sourceVerified ? "inline-flex" : "none";
   $("#verifiedPill").innerHTML = '<i data-lucide="badge-check"></i> Verified Source';
   $("#messageButton").href = row.phone ? `tel:${row.phone.replace(/[^0-9+]/g, "")}` : "#";
@@ -1078,14 +1080,11 @@ function wireEvents() {
     const clearButton = event.target.closest("[data-clear-filters]");
     const categoryToggleButton = event.target.closest("[data-toggle-categories]");
     const filterButton = event.target.closest("[data-filter-button]");
-    const dashboardButton = event.target.closest("[data-dashboard-link]");
     const viewButton = event.target.closest("[data-view]");
     const popupProfileButton = event.target.closest("[data-popup-profile]");
     const backResultsButton = event.target.closest("[data-back-results]");
-    const proSignInButton = event.target.closest("[data-pro-sign-in]");
-    const proTabButton = event.target.closest("[data-pro-tab]");
-    const viewPublicProfileButton = event.target.closest("[data-view-public-profile]");
     const closeDialogButton = event.target.closest("[data-close-dialog]");
+    const urgencyButton = event.target.closest("[data-urgency]");
 
     if (popupProfileButton) {
       const row = state.rows.find((item) => item.id === popupProfileButton.dataset.popupProfile);
@@ -1111,6 +1110,10 @@ function wireEvents() {
       $("#quoteSuccess").hidden = true;
       $("#quoteDialog").showModal();
       initIcons();
+    }
+
+    if (urgencyButton) {
+      $$("[data-urgency]").forEach((button) => button.classList.toggle("active", button === urgencyButton));
     }
 
     if (claimButton) {
@@ -1145,11 +1148,6 @@ function wireEvents() {
       filterButton.setAttribute("aria-pressed", String(workspace.classList.contains("filters-hidden")));
     }
 
-    if (dashboardButton) {
-      $("#proAccessDialog").showModal();
-      initIcons();
-    }
-
     if (viewButton) {
       setDirectoryView(viewButton.dataset.view);
       const target = viewButton.dataset.view === "map" ? ".map-panel" : ".results-panel";
@@ -1162,19 +1160,6 @@ function wireEvents() {
       scrollToResults();
     }
 
-    if (proSignInButton) {
-      $("#proAccessDialog").close();
-      openProDashboard();
-    }
-
-    if (proTabButton) {
-      setProTab(proTabButton.dataset.proTab);
-    }
-
-    if (viewPublicProfileButton) {
-      scrollToProfile();
-    }
-
     if (closeDialogButton) {
       closeDialogButton.closest("dialog")?.close();
     }
@@ -1182,7 +1167,14 @@ function wireEvents() {
 
   $("#quoteForm").addEventListener("submit", (event) => {
     event.preventDefault();
+    saveQuoteLead();
     $("#quoteSuccess").hidden = false;
+    initIcons();
+  });
+
+  $("#claimForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    $("#claimSuccess").hidden = false;
     initIcons();
   });
 
@@ -1191,25 +1183,81 @@ function wireEvents() {
   });
 }
 
-function openProDashboard() {
-  const dashboard = $("#pros");
-  dashboard.hidden = false;
-  setProTab("leads");
-  dashboard.scrollIntoView({ behavior: "smooth", block: "start" });
-  initIcons();
-}
-
-function setProTab(tabName) {
-  $$("[data-pro-tab]").forEach((button) => {
-    button.classList.toggle("active", button.dataset.proTab === tabName);
-  });
-  $$("[data-pro-panel]").forEach((panel) => {
-    panel.classList.toggle("active", panel.dataset.proPanel === tabName);
-  });
-}
-
 function setDirectoryView(view) {
   $$("[data-view]").forEach((button) => button.classList.toggle("active", button.dataset.view === view));
+}
+
+function saveQuoteLead() {
+  const leads = readStoredArray("builtlocal_demo_leads", defaultPublicLeads());
+  const selectedUrgency = $("[data-urgency].active")?.dataset.urgency || "ASAP";
+  const lead = {
+    id: `lead-${Date.now()}`,
+    title: `${$("#quoteService").value} request`,
+    service: $("#quoteService").value,
+    town: $("#quoteTown").value.trim() || state.selected?.town || "SD&G",
+    details: $("#quoteDetails").value.trim() || "Resident requested follow-up from the public directory.",
+    contact: $("#quoteContact").value.trim() || "Contact not provided",
+    urgency: selectedUrgency,
+    status: "New",
+    notes: "",
+    source: "Public quote form",
+    createdAt: new Date().toISOString(),
+  };
+  leads.unshift(lead);
+  localStorage.setItem("builtlocal_demo_leads", JSON.stringify(leads));
+}
+
+function defaultPublicLeads() {
+  return [
+    {
+      id: "seed-roof-morrisburg",
+      title: "Roof repair needed",
+      service: "Roofing",
+      town: "Morrisburg",
+      details: "Small leak near the rear addition after heavy rain.",
+      contact: "resident@example.com",
+      urgency: "Within a week",
+      status: "New",
+      notes: "",
+      source: "Sample lead",
+      createdAt: "2026-05-25T14:30:00.000Z",
+    },
+    {
+      id: "seed-deck-iroquois",
+      title: "Deck railing repair",
+      service: "General contractor",
+      town: "Iroquois",
+      details: "Looking for a quote to repair a loose railing and two steps.",
+      contact: "613-555-0112",
+      urgency: "Flexible",
+      status: "Contacted",
+      notes: "Left voicemail.",
+      source: "Sample lead",
+      createdAt: "2026-05-24T18:10:00.000Z",
+    },
+    {
+      id: "seed-fence-brinston",
+      title: "Fence section replacement",
+      service: "General contractor",
+      town: "Brinston",
+      details: "Wind damaged a short fence section near the driveway.",
+      contact: "resident2@example.com",
+      urgency: "ASAP",
+      status: "New",
+      notes: "",
+      source: "Sample lead",
+      createdAt: "2026-05-23T12:00:00.000Z",
+    },
+  ];
+}
+
+function readStoredArray(key, fallback) {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) || "null");
+    return Array.isArray(parsed) ? parsed : fallback;
+  } catch (error) {
+    return fallback;
+  }
 }
 
 function scrollToResults() {
