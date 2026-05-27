@@ -131,6 +131,7 @@ function wireEvents() {
   document.addEventListener("click", (event) => {
     const tabButton = event.target.closest("[data-pro-tab]");
     const signOutButton = event.target.closest("[data-sign-out]");
+    const menuToggleButton = event.target.closest("[data-pro-menu-toggle]");
     const leadButton = event.target.closest("[data-lead-id]");
     const createLeadButton = event.target.closest("[data-create-lead]");
     const saveLeadButton = event.target.closest("[data-save-lead]");
@@ -138,10 +139,15 @@ function wireEvents() {
     const addReviewButton = event.target.closest("[data-add-review]");
     const copyReviewButton = event.target.closest("[data-copy-review]");
 
-    if (tabButton) setProTab(tabButton.dataset.proTab);
+    if (menuToggleButton) toggleProMenu();
+    if (tabButton) {
+      setProTab(tabButton.dataset.proTab);
+      closeProMenu();
+    }
     if (signOutButton) {
       localStorage.removeItem(keys.session);
       showAuthenticatedView(false);
+      closeProMenu();
     }
     if (leadButton) {
       state.selectedLeadId = leadButton.dataset.leadId;
@@ -201,6 +207,21 @@ function wireEvents() {
     writeObject(keys.settings, state.settings);
     flash("#settingsSaved");
   });
+}
+
+function toggleProMenu() {
+  const menu = $("#proMenu");
+  const button = $("[data-pro-menu-toggle]");
+  const isOpen = menu.classList.toggle("open");
+  button.setAttribute("aria-expanded", String(isOpen));
+}
+
+function closeProMenu() {
+  const menu = $("#proMenu");
+  const button = $("[data-pro-menu-toggle]");
+  if (!menu || !button) return;
+  menu.classList.remove("open");
+  button.setAttribute("aria-expanded", "false");
 }
 
 function showAuthenticatedView(isSignedIn) {

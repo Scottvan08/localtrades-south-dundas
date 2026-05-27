@@ -43,17 +43,24 @@
 
       <section class="pro-workspace" id="dashboardView" hidden>
         <aside class="pro-sidebar">
-          <a class="brand inverse" href="../">
-            <span class="brand-mark"><i data-lucide="sprout"></i></span>
-            <span><strong>BuiltLocal</strong><small>Pro</small></span>
-          </a>
-          <button class="side-link active" type="button" data-pro-tab="leads"><i data-lucide="inbox"></i>Leads</button>
-          <button class="side-link" type="button" data-pro-tab="analytics"><i data-lucide="bar-chart-3"></i>Analytics</button>
-          <button class="side-link" type="button" data-pro-tab="profile"><i data-lucide="user-round-cog"></i>Profile</button>
-          <button class="side-link" type="button" data-pro-tab="reviews"><i data-lucide="star"></i>Reviews</button>
-          <button class="side-link" type="button" data-pro-tab="areas"><i data-lucide="map"></i>Service Areas</button>
-          <button class="side-link" type="button" data-pro-tab="settings"><i data-lucide="settings"></i>Settings</button>
-          <button class="side-link signout-link" type="button" data-sign-out><i data-lucide="log-out"></i>Sign Out</button>
+          <div class="pro-sidebar-head">
+            <a class="brand inverse" href="../">
+              <span class="brand-mark"><i data-lucide="sprout"></i></span>
+              <span><strong>BuiltLocal</strong><small>Pro</small></span>
+            </a>
+            <button class="icon-button pro-menu-toggle" type="button" data-pro-menu-toggle aria-label="Open Pro menu" aria-expanded="false">
+              <i data-lucide="menu"></i>
+            </button>
+          </div>
+          <div class="pro-menu" id="proMenu">
+            <button class="side-link active" type="button" data-pro-tab="leads"><i data-lucide="inbox"></i>Leads</button>
+            <button class="side-link" type="button" data-pro-tab="analytics"><i data-lucide="bar-chart-3"></i>Analytics</button>
+            <button class="side-link" type="button" data-pro-tab="profile"><i data-lucide="user-round-cog"></i>Profile</button>
+            <button class="side-link" type="button" data-pro-tab="reviews"><i data-lucide="star"></i>Reviews</button>
+            <button class="side-link" type="button" data-pro-tab="areas"><i data-lucide="map"></i>Service Areas</button>
+            <button class="side-link" type="button" data-pro-tab="settings"><i data-lucide="settings"></i>Settings</button>
+            <button class="side-link signout-link" type="button" data-sign-out><i data-lucide="log-out"></i>Sign Out</button>
+          </div>
         </aside>
 
         <div class="dashboard-main pro-main">
