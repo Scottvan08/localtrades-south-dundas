@@ -1,6 +1,7 @@
 const {
   createSnapshot,
   generateAiSummary,
+  handleCorsPreflight,
   isConfigured,
   routeLeadToNextProvider,
   sendJson,
@@ -8,6 +9,8 @@ const {
 } = require("./_lib/sms-leads");
 
 module.exports = async function leadsHandler(req, res) {
+  if (handleCorsPreflight(req, res)) return;
+
   if (req.method !== "POST") {
     return sendJson(res, 405, { error: "Method not allowed" });
   }

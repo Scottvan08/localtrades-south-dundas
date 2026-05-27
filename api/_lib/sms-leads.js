@@ -22,7 +22,26 @@ function sendJson(res, status, payload) {
   res.statusCode = status;
   res.setHeader("content-type", "application/json; charset=utf-8");
   res.setHeader("cache-control", "no-store");
+  setCorsHeaders(res);
   res.end(JSON.stringify(payload));
+}
+
+function sendNoContent(res, status = 204) {
+  res.statusCode = status;
+  setCorsHeaders(res);
+  res.end();
+}
+
+function setCorsHeaders(res) {
+  res.setHeader("access-control-allow-origin", "*");
+  res.setHeader("access-control-allow-methods", "GET,POST,OPTIONS");
+  res.setHeader("access-control-allow-headers", "content-type,authorization");
+}
+
+function handleCorsPreflight(req, res) {
+  if (req.method !== "OPTIONS") return false;
+  sendNoContent(res);
+  return true;
 }
 
 function publicBaseUrl(req) {
@@ -318,6 +337,7 @@ module.exports = {
   apiBaseUrl,
   createSnapshot,
   generateAiSummary,
+  handleCorsPreflight,
   isConfigured,
   leadTimeoutMinutes,
   normalizePhone,

@@ -1,6 +1,8 @@
-const { readBody, routeLeadToNextProvider, sendJson, sendSms, supabase } = require("../_lib/sms-leads");
+const { handleCorsPreflight, readBody, routeLeadToNextProvider, sendJson, sendSms, supabase } = require("../_lib/sms-leads");
 
 module.exports = async function leadTokenHandler(req, res) {
+  if (handleCorsPreflight(req, res)) return;
+
   if (!["GET", "POST"].includes(req.method)) {
     return sendJson(res, 405, { error: "Method not allowed" });
   }

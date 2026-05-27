@@ -1,6 +1,8 @@
-const { sendJson } = require("./_lib/sms-leads");
+const { handleCorsPreflight, sendJson } = require("./_lib/sms-leads");
 
 module.exports = async function healthHandler(req, res) {
+  if (handleCorsPreflight(req, res)) return;
+
   if (req.method !== "GET") {
     return sendJson(res, 405, { error: "Method not allowed" });
   }

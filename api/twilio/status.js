@@ -1,6 +1,8 @@
-const { readBody, sendJson, supabase, validateTwilioSignature } = require("../_lib/sms-leads");
+const { handleCorsPreflight, readBody, sendJson, supabase, validateTwilioSignature } = require("../_lib/sms-leads");
 
 module.exports = async function twilioStatusHandler(req, res) {
+  if (handleCorsPreflight(req, res)) return;
+
   if (req.method !== "POST") {
     return sendJson(res, 405, { error: "Method not allowed" });
   }
