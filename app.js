@@ -377,7 +377,8 @@ function parseCsv(csv) {
 }
 
 function enrichRows(rows) {
-  const prototypeRows = rows.concat(demoBusinessRow());
+  const hasDemoBusiness = rows.some((row) => row.name === "BuiltLocal Demo Co.");
+  const prototypeRows = hasDemoBusiness ? rows : rows.concat(demoBusinessRow());
 
   return prototypeRows.map((row, index) => {
     const primary = normalizePrimaryCategory(row.primary_category, row.secondary_categories);
