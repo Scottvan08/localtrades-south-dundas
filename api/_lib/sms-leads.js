@@ -173,7 +173,7 @@ async function supabase(path, options = {}) {
     throw new Error("Supabase is not configured");
   }
 
-  const response = await fetch(`${process.env.SUPABASE_URL.replace(/\/$/, "")}/rest/v1/${path}`, {
+  const response = await fetch(`${supabaseBaseUrl()}/rest/v1/${path}`, {
     ...options,
     headers: {
       apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -191,6 +191,12 @@ async function supabase(path, options = {}) {
 
   if (response.status === 204) return null;
   return response.json();
+}
+
+function supabaseBaseUrl() {
+  return process.env.SUPABASE_URL
+    .replace(/\/+$/, "")
+    .replace(/\/rest\/v1$/i, "");
 }
 
 async function sendSms({ to, body }) {
