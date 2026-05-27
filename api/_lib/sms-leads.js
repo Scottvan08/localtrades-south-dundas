@@ -93,6 +93,16 @@ function normalizePhone(value) {
   return String(value || "").trim();
 }
 
+function isSmsContact(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  return digits.length === 10 || (digits.length === 11 && digits.startsWith("1"));
+}
+
+function homeownerAcceptedMessage({ service, providerName }) {
+  const cleanProviderName = String(providerName || "a local provider").replace(/[.?!]+$/, "");
+  return `Your BuiltLocal request for ${service || "service"} has been accepted by ${cleanProviderName}. They should reach out shortly.`;
+}
+
 function leadTimeoutMinutes(urgency) {
   if (/emergency/i.test(urgency || "")) return ROUTING_TIMEOUT_MINUTES.emergency;
   if (/asap|today/i.test(urgency || "")) return ROUTING_TIMEOUT_MINUTES.asap;
@@ -344,7 +354,9 @@ module.exports = {
   createSnapshot,
   generateAiSummary,
   handleCorsPreflight,
+  homeownerAcceptedMessage,
   isConfigured,
+  isSmsContact,
   leadTimeoutMinutes,
   normalizePhone,
   providerLeadUrl,

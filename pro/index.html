@@ -218,6 +218,23 @@
       </section>
     </main>
 
+    <dialog class="quote-dialog lead-action-dialog" id="leadActionDialog" aria-labelledby="lead-action-title">
+      <div class="quote-form lead-action-sheet">
+        <div class="modal-head">
+          <div>
+            <p class="section-kicker">Lead accepted</p>
+            <h2 id="lead-action-title">Contact the homeowner now.</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-lead-actions aria-label="Close contact options">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <p class="modal-note" id="leadActionSummary">Choose the quickest next step for this lead.</p>
+        <div class="lead-action-list" id="leadActionList"></div>
+        <span class="inline-success no-margin" id="contactCardCopied" hidden>Contact card copied.</span>
+      </div>
+    </dialog>
+
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="./pro.js"></script>
   </body>

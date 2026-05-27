@@ -1,6 +1,8 @@
 const {
   normalizePhone,
   handleCorsPreflight,
+  homeownerAcceptedMessage,
+  isSmsContact,
   providerLeadUrl,
   readBody,
   routeLeadToNextProvider,
@@ -144,10 +146,10 @@ async function claimLead({ attempt, provider, from }) {
     ].join("\n"),
   });
 
-  if (lead.contact && /\d{10,}/.test(String(lead.contact).replace(/\D/g, ""))) {
+  if (isSmsContact(lead.contact)) {
     await sendSms({
       to: lead.contact,
-      body: `${provider.business_name} accepted your BuiltLocal request and should follow up shortly.`,
+      body: homeownerAcceptedMessage({ service: lead.service, providerName: provider.business_name }),
     });
   }
 }

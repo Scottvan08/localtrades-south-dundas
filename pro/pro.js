@@ -140,8 +140,12 @@ function wireEvents() {
     const backLeadsButton = event.target.closest("[data-back-leads]");
     const addReviewButton = event.target.closest("[data-add-review]");
     const copyReviewButton = event.target.closest("[data-copy-review]");
+    const closeLeadActionsButton = event.target.closest("[data-close-lead-actions]");
+    const forwardContactButton = event.target.closest("[data-forward-contact]");
 
     if (menuToggleButton) toggleProMenu();
+    if (closeLeadActionsButton) closeLeadActionSheet();
+    if (forwardContactButton) forwardContactCard();
     if (tabButton) {
       setProTab(tabButton.dataset.proTab);
       closeProMenu();
@@ -388,6 +392,7 @@ function acceptSelectedLead() {
   renderAnalytics();
   renderLeads();
   flash("#leadSaved");
+  showLeadActionSheet(selected);
 }
 
 function saveSelectedLead() {
@@ -502,6 +507,168 @@ async function copyReviewInvite() {
     document.execCommand("copy");
   }
   flash("#reviewCopied");
+}
+
+function showLeadActionSheet(lead) {
+  const dialog = $("#leadActionDialog");
+  const actionList = $("#leadActionList");
+  if (!dialog || !actionList) return;
+
+  $("#leadActionSummary").textContent = `${lead.service || "Lead"} in ${lead.town || "SD&G"} is marked claimed. Use the fastest contact option while the request is fresh.`;
+  const actions = contactActionsForLead(lead);
+  actionList.innerHTML = actions.length ? actions.map((action) => {
+    if (action.kind === "button") {
+      return `
+        <button class="lead-action-button" type="button" data-forward-contact>
+          <i data-lucide="${action.icon}"></i>
+          <span><strong>${escapeHtml(action.label)}</strong><small>${escapeHtml(action.help)}</small></span>
+        </button>
+      `;
+    }
+    return `
+      <a class="lead-action-button${action.primary ? " primary-contact" : ""}" href="${escapeHtml(action.href)}">
+        <i data-lucide="${action.icon}"></i>
+        <span><strong>${escapeHtml(action.label)}</strong><small>${escapeHtml(action.help)}</small></span>
+      </a>
+    `;
+  }).join("") : `
+    <div class="empty-state no-margin">
+      <i data-lucide="contact"></i>
+      <strong>No direct contact saved</strong>
+      <span>Forward the lead card internally or add contact details to the lead notes.</span>
+    </div>
+  `;
+  $("#contactCardCopied").hidden = true;
+
+  if (typeof dialog.showModal === "function") dialog.showModal();
+  else dialog.setAttribute("open", "");
+  initIcons();
+}
+
+function closeLeadActionSheet() {
+  const dialog = $("#leadActionDialog");
+  if (!dialog) return;
+  if (typeof dialog.close === "function") dialog.close();
+  else dialog.removeAttribute("open");
+}
+
+function contactActionsForLead(lead) {
+  const contact = String(lead.contact || "").trim();
+  const phone = normalizeLeadPhone(contact);
+  const email = emailFromContact(contact);
+  const preferred = String(lead.preferredContact || "").toLowerCase();
+  const script = lead.snapshot?.nextStepScript || `Hi, this is ${state.profile.name || "BuiltLocal Demo Co."}. I accepted your BuiltLocal request for ${lead.service || "service"} in ${lead.town || "SD&G"} and can confirm next steps.`;
+  const actions = [];
+
+  if (phone) {
+    actions.push({
+      id: "text",
+      label: "Text now",
+      help: phone,
+      href: `sms:${phone}`,
+      icon: "message-circle",
+    });
+    actions.push({
+      id: "call",
+      label: "Call now",
+      help: phone,
+      href: `tel:${phone}`,
+      icon: "phone",
+    });
+  }
+
+  if (email) {
+    const subject = encodeURIComponent(`BuiltLocal request: ${lead.service || "service"} in ${lead.town || "SD&G"}`);
+    const body = encodeURIComponent(script);
+    actions.push({
+      id: "email",
+      label: "Email now",
+      help: email,
+      href: `mailto:${email}?subject=${subject}&body=${body}`,
+      icon: "mail",
+    });
+  }
+
+  const preferredId = preferred.includes("call")
+    ? "call"
+    : preferred.includes("email")
+      ? "email"
+      : preferred.includes("text")
+        ? "text"
+        : "";
+  const sorted = actions.map((action) => ({ ...action, primary: action.id === preferredId }));
+  sorted.sort((a, b) => Number(b.primary) - Number(a.primary));
+  sorted.push({
+    kind: "button",
+    id: "forward",
+    label: "Forward contact card",
+    help: "Share the snapshot with someone on your team",
+    icon: "share-2",
+  });
+  return sorted;
+}
+
+async function forwardContactCard() {
+  const lead = state.leads.find((item) => item.id === state.selectedLeadId);
+  if (!lead) return;
+  const text = contactCardText(lead);
+  try {
+    if (navigator.share) {
+      await navigator.share({
+        title: `BuiltLocal lead: ${lead.service || "Service"} in ${lead.town || "SD&G"}`,
+        text,
+      });
+    } else if (navigator.clipboard) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      copyTextFallback(text);
+    }
+    flash("#contactCardCopied");
+  } catch (error) {
+    if (error?.name === "AbortError") return;
+    copyTextFallback(text);
+    flash("#contactCardCopied");
+  }
+}
+
+function contactCardText(lead) {
+  const snapshot = lead.snapshot || {};
+  return [
+    "BuiltLocal lead contact",
+    `Name: ${lead.contactName || "Homeowner"}`,
+    `Contact: ${lead.contact || "Not provided"}`,
+    `Service: ${lead.service || "Service"}`,
+    `Town: ${lead.town || "SD&G"}`,
+    `Urgency: ${lead.urgency || "Not specified"}`,
+    `Preferred: ${lead.preferredContact || "Text"}`,
+    `Availability: ${lead.availability || "Not specified"}`,
+    `Snapshot: ${snapshot.smsLine || snapshot.summary || lead.details || "No snapshot saved"}`,
+    `Details: ${lead.details || "No details saved"}`,
+  ].join("\n");
+}
+
+function normalizeLeadPhone(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
+  return "";
+}
+
+function emailFromContact(value) {
+  const match = String(value || "").match(/[^\s|<>]+@[^\s|<>]+\.[^\s|<>]+/);
+  return match ? match[0] : "";
+}
+
+function copyTextFallback(text) {
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  textarea.remove();
 }
 
 function renderAreasForm() {

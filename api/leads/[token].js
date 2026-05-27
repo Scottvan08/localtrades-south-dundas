@@ -1,4 +1,13 @@
-const { handleCorsPreflight, readBody, routeLeadToNextProvider, sendJson, sendSms, supabase } = require("../_lib/sms-leads");
+const {
+  handleCorsPreflight,
+  homeownerAcceptedMessage,
+  isSmsContact,
+  readBody,
+  routeLeadToNextProvider,
+  sendJson,
+  sendSms,
+  supabase,
+} = require("../_lib/sms-leads");
 
 module.exports = async function leadTokenHandler(req, res) {
   if (handleCorsPreflight(req, res)) return;
@@ -86,6 +95,13 @@ async function claimLead(res, attempt) {
         `Homeowner: ${homeowner}`,
         `Suggested reply: ${lead.snapshot?.nextStepScript || "Thanks for reaching out through BuiltLocal. I can take a quick look and confirm next steps."}`,
       ].join("\n"),
+    });
+  }
+
+  if (isSmsContact(lead.contact)) {
+    await sendSms({
+      to: lead.contact,
+      body: homeownerAcceptedMessage({ service: lead.service, providerName: provider.business_name }),
     });
   }
 

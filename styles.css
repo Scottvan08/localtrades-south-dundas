@@ -1325,6 +1325,61 @@ h2 {
   backdrop-filter: blur(3px);
 }
 
+.lead-action-dialog {
+  width: min(460px, calc(100% - 28px));
+}
+
+.lead-action-sheet {
+  gap: 14px;
+}
+
+.lead-action-list {
+  display: grid;
+  gap: 10px;
+}
+
+.lead-action-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 12px;
+  color: #213a33;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.lead-action-button:hover,
+.lead-action-button.primary-contact {
+  border-color: rgba(19, 122, 70, 0.4);
+  box-shadow: 0 0 0 3px rgba(19, 122, 70, 0.1);
+}
+
+.lead-action-button svg {
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  color: var(--green);
+  background: var(--green-soft);
+  border-radius: var(--radius);
+  flex: 0 0 auto;
+}
+
+.lead-action-button strong,
+.lead-action-button small {
+  display: block;
+}
+
+.lead-action-button small {
+  margin-top: 3px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
 .quote-form {
   display: grid;
   gap: 16px;
@@ -1902,6 +1957,10 @@ h2 {
   .brand.inverse {
     display: none;
   }
+
+  .pro-sidebar .brand.inverse {
+    display: inline-flex;
+  }
 }
 
 @media (max-width: 760px) {
@@ -2079,6 +2138,7 @@ h2 {
     top: 0;
     z-index: 20;
     padding: 12px;
+    box-shadow: 0 12px 28px rgba(6, 24, 21, 0.2);
   }
 
   .pro-sidebar-head {
@@ -2086,6 +2146,10 @@ h2 {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+  }
+
+  .pro-sidebar .brand.inverse {
+    display: inline-flex;
   }
 
   .pro-menu-toggle {
@@ -2177,6 +2241,7 @@ h2 {
 
   .detail-card .primary-button,
   .detail-card .secondary-button,
+  .lead-action-button,
   .detail-card select,
   .detail-card textarea {
     width: 100%;
