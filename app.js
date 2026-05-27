@@ -620,7 +620,7 @@ function applyFilters() {
       .toLowerCase();
 
     const keywordCategoryMatch = searchCategories.includes(row.displayCategory);
-    const serviceMatch = !searchText || haystack.includes(searchText) || keywordCategoryMatch;
+    const serviceMatch = !searchText || rowSearchScore(row, searchText) > 0 || keywordCategoryMatch;
     const categoryMatch = !categoryText || haystack.includes(categoryText) || row.displayCategory.toLowerCase() === categoryText;
     const townMatch = !townText || haystack.includes(townText);
     const confidenceMatch = !state.confidence || row.confidence === state.confidence;
@@ -653,7 +653,7 @@ function rowPriority(row) {
   let score = 0;
   const searchText = state.service.trim().toLowerCase();
   const searchCategories = categoriesForSearch(searchText);
-  if (searchText && rowSearchHaystack(row).includes(searchText)) score += 220;
+  if (searchText) score += rowSearchScore(row, searchText);
   if (searchCategories.includes(row.displayCategory)) score += 150;
   if (state.region && row.local_area === state.region) score += 100;
   if (state.town && rowMatchesTown(row, state.town)) score += 120;
@@ -675,6 +675,33 @@ function rowSearchHaystack(row) {
     row.displayCategory,
     row.serviceAreas.join(" "),
   ].join(" ").toLowerCase();
+}
+
+function rowSearchScore(row, searchText) {
+  const normalizedSearch = normalizeSearchText(searchText);
+  if (!normalizedSearch) return 0;
+
+  const normalizedName = normalizeSearchText(row.name);
+  const compactSearch = normalizedSearch.replace(/\s+/g, "");
+  const compactName = normalizedName.replace(/\s+/g, "");
+  const nameTokens = normalizedName.split(" ").filter(Boolean);
+
+  if (normalizedName === normalizedSearch) return 380;
+  if (compactSearch.length >= 4 && compactName.includes(compactSearch)) return 350;
+  if (normalizedName.startsWith(normalizedSearch)) return 330;
+  if (nameTokens.some((token) => token === normalizedSearch)) return 315;
+  if (normalizedSearch.length >= 2 && nameTokens.some((token) => token.startsWith(normalizedSearch))) return 300;
+
+  const normalizedHaystack = normalizeSearchText(rowSearchHaystack(row));
+  const haystackTokens = normalizedHaystack.split(" ").filter(Boolean);
+
+  if (normalizedSearch.length <= 3) {
+    return 0;
+  }
+
+  if (normalizedHaystack.includes(normalizedSearch)) return 220;
+  if (compactSearch.length >= 4 && normalizedHaystack.replace(/\s+/g, "").includes(compactSearch)) return 210;
+  return 0;
 }
 
 function categoriesForSearch(searchText) {
