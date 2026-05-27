@@ -119,9 +119,9 @@
                 <div class="panel-head"><strong>Lead analytics</strong></div>
                 <div class="stats-grid compact-stats">
                   <div><strong id="analyticsTotal">0</strong><span>Total leads</span></div>
-                  <div><strong id="analyticsWon">0</strong><span>Won leads</span></div>
+                  <div><strong id="analyticsHandled">0</strong><span>Handled leads</span></div>
                   <div><strong id="analyticsContacted">0</strong><span>Claimed/contacted</span></div>
-                  <div><strong id="analyticsArchived">0</strong><span>Archived</span></div>
+                  <div><strong id="analyticsRejected">0</strong><span>Rejected</span></div>
                 </div>
               </article>
               <article class="strength-panel">
@@ -241,6 +241,28 @@
         <p class="modal-note" id="leadActionSummary">Choose the quickest next step for this lead.</p>
         <div class="lead-action-list" id="leadActionList"></div>
         <span class="inline-success no-margin" id="contactCardCopied" hidden>Contact card copied.</span>
+      </div>
+    </dialog>
+
+    <dialog class="quote-dialog lead-action-dialog" id="rejectLeadDialog" aria-labelledby="reject-lead-title">
+      <div class="quote-form lead-action-sheet">
+        <div class="modal-head">
+          <div>
+            <p class="section-kicker">Reject lead</p>
+            <h2 id="reject-lead-title">Send this back to matching?</h2>
+          </div>
+          <button class="icon-button" type="button" data-cancel-reject aria-label="Cancel reject">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <p class="modal-note">In the live routing flow, BuiltLocal would offer this request to another matched provider.</p>
+        <div class="modal-actions">
+          <button class="secondary-button" type="button" data-cancel-reject>Keep Lead</button>
+          <button class="primary-button danger-button" type="button" data-confirm-reject>
+            <i data-lucide="x-circle"></i>
+            Reject Lead
+          </button>
+        </div>
       </div>
     </dialog>
 
