@@ -4,7 +4,7 @@
 
 BuiltLocal now uses an SD&G seed file with county and local-area fields so the prototype can feel local while covering Stormont, Dundas and Glengarry.
 
-Current seed total: 237 public listings.
+Current seed total: 242 public listings.
 
 Local-area coverage:
 
@@ -33,8 +33,8 @@ This pass broadened discovery with search-driven queries for weak local areas an
 
 Result:
 
-- 27 high-confidence rows added directly to `sdg-seed-listings.csv`.
-- 7 medium-confidence candidates held in `candidate-listings-sdg.csv` for owner confirmation or deeper review.
+- 32 high-confidence rows added directly to `sdg-seed-listings.csv`.
+- 2 medium-confidence candidates held in `candidate-listings-sdg.csv` for owner confirmation or deeper review.
 - Existing weak rows improved where stronger official evidence was found, including David Brown Construction Ltd, S.L Electric, and Casey Mechanical Inc.
 
 Coverage added:
@@ -44,6 +44,7 @@ Coverage added:
 - South Glengarry: septic, excavation, agricultural/rural construction, and septic pumping.
 - North Glengarry: HVAC, home repair, construction, and outdoor power equipment.
 - Cornwall & Area: HVAC, fencing, junk removal/light demolition, pressure washing/property maintenance, and outdoor power equipment.
+- Follow-up local verification added Flegg Equipment Ltd, Carl Bulloch Construction, Rose Mech, 613Environmental, and F & N Handy Men.
 
 Review/activity handling:
 
