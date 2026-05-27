@@ -1,6 +1,11 @@
-const apiBaseUrl = (window.BUILTLOCAL_API_BASE || localStorage.getItem("builtlocal_api_base") || "").replace(/\/$/, "");
 const params = new URLSearchParams(location.search);
 const token = params.get("token");
+const apiBaseUrl = (
+  params.get("api")
+  || window.BUILTLOCAL_API_BASE
+  || localStorage.getItem("builtlocal_api_base")
+  || ""
+).replace(/\/$/, "");
 
 const $ = (selector) => document.querySelector(selector);
 

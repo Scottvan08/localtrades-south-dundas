@@ -30,7 +30,9 @@ TWILIO_VALIDATE_WEBHOOKS=true
 ROUTING_SWEEP_SECRET=
 ```
 
-Use `TWILIO_MESSAGING_SERVICE_SID` when available. `TWILIO_FROM_NUMBER` is the fallback sender. Toll-free SMS in Canada/US should be verified before relying on production delivery.
+Use `TWILIO_MESSAGING_SERVICE_SID` when available. `TWILIO_FROM_NUMBER` is the fallback sender. `OPENAI_API_KEY` is optional; without it, the API uses the built-in Job Snapshot summary. Toll-free SMS in Canada/US should be verified before relying on production delivery.
+
+For Vercel setup, copy the names from `.env.vercel.example` into Project Settings > Environment Variables. Do not commit real secret values.
 
 ## Supabase Setup
 
@@ -45,12 +47,36 @@ Minimum provider fields:
 - `accepts_leads=true`
 - `paused=false`
 
+For a one-phone live test, run `supabase/test-provider.sql` after replacing `+1YOURCELLPHONE` with the verified cellphone number that should receive test leads.
+
 ## Twilio Webhooks
 
 Configure Twilio Messaging Service or phone number webhooks:
 
 - Incoming messages: `POST https://your-api-host.example/api/twilio/inbound`
 - Status callbacks: `POST https://your-api-host.example/api/twilio/status`
+
+For the first trial-account test, set `TWILIO_VALIDATE_WEBHOOKS=false` until the deployed URL is stable. Switch it to `true` before any real provider pilot.
+
+## Live Cellphone Test
+
+1. Deploy the API routes to Vercel.
+2. Add the Vercel environment variables from `.env.vercel.example`.
+3. Open `https://your-api-host.example/api/health` and confirm `supabase` and `twilio` are `true`.
+4. In Supabase, run `supabase/schema.sql`.
+5. In Supabase, run `supabase/test-provider.sql` with your verified cellphone number.
+6. In Twilio, set the incoming SMS webhook and status callback URLs above.
+7. On the public GitHub Pages site, set the API base once in the browser console:
+
+```js
+localStorage.setItem("builtlocal_api_base", "https://your-api-host.example");
+```
+
+8. Submit a `Request Help` lead for a matching category such as `Roofing`.
+9. Confirm the cellphone receives the BuiltLocal lead SMS.
+10. Reply `INFO`, `YES`, or `NO`.
+
+SMS lead-card links include the API host as a query parameter, so they work on a phone even when that phone has never visited the local test setup.
 
 ## Timeout Rerouting
 

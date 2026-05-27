@@ -4,7 +4,7 @@ Prototype for a rural-first local services directory for Stormont, Dundas and Gl
 
 The app helps residents find local trades, contractors, and service providers who actually serve the surrounding rural area. It is currently a static public directory using an SD&G CSV seed database, Leaflet maps, local-area filtering, contractor profiles, guided quote intake, claim modals, and mock Pro/business access.
 
-The lead product direction is SMS-first: residents submit a short guided request, BuiltLocal creates a Job Snapshot, and the hosted API can text one matched provider at a time. See `docs/SMS_LEADS_MVP.md`.
+The lead product direction is SMS-first: residents submit a short guided request, BuiltLocal creates a Job Snapshot, and the hosted API can text one matched provider at a time. See `docs/SMS_LEADS_MVP.md` for the Vercel, Supabase, Twilio, and cellphone test setup.
 
 ## Local Preview
 

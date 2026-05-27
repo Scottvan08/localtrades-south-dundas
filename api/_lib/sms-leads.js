@@ -31,6 +31,14 @@ function apiBaseUrl(req) {
   return process.env.PUBLIC_API_URL || publicBaseUrl(req);
 }
 
+function providerLeadUrl(req, token) {
+  const siteBase = publicBaseUrl(req).replace(/\/$/, "");
+  const apiBase = apiBaseUrl(req).replace(/\/$/, "");
+  const params = new URLSearchParams({ token });
+  if (apiBase && apiBase !== siteBase) params.set("api", apiBase);
+  return `${siteBase}/lead/?${params.toString()}`;
+}
+
 function isConfigured() {
   return Boolean(
     process.env.SUPABASE_URL
@@ -215,7 +223,7 @@ async function routeLeadToNextProvider({ lead, req, excludeProviderIds = [] }) {
   const token = createLeadToken();
   const timeoutMinutes = leadTimeoutMinutes(lead.urgency);
   const expiresAt = new Date(Date.now() + timeoutMinutes * 60 * 1000).toISOString();
-  const leadUrl = `${publicBaseUrl(req).replace(/\/$/, "")}/lead/?token=${token}`;
+  const leadUrl = providerLeadUrl(req, token);
   const smsBody = [
     `BuiltLocal lead: ${lead.snapshot?.smsLine || `${lead.service} in ${lead.town}`}`,
     `Reply YES to claim, NO to pass, INFO for details.`,
@@ -280,6 +288,7 @@ module.exports = {
   isConfigured,
   leadTimeoutMinutes,
   normalizePhone,
+  providerLeadUrl,
   publicBaseUrl,
   readBody,
   routeLeadToNextProvider,

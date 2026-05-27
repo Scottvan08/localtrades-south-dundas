@@ -1,5 +1,6 @@
 const {
   normalizePhone,
+  providerLeadUrl,
   readBody,
   routeLeadToNextProvider,
   sendJson,
@@ -103,7 +104,7 @@ module.exports = async function inboundSmsHandler(req, res) {
     }
 
     if (command === "INFO" || command === "DETAILS") {
-      const leadUrl = `${process.env.PUBLIC_SITE_URL || ""}/lead/?token=${attempt.token}`.replace(/([^:]\/)\/+/g, "$1");
+      const leadUrl = providerLeadUrl(req, attempt.token);
       await sendSms({ to: from, body: `Lead details: ${leadUrl}\nReply YES to claim or NO to pass.` });
       return sendJson(res, 200, { ok: true, command: "INFO" });
     }
