@@ -38,7 +38,7 @@ function renderLead(lead) {
   $("#leadTitle").textContent = lead.snapshot?.title || `${lead.service || "Service"} in ${lead.town || "SD&G"}`;
   $("#leadSummary").textContent = lead.snapshot?.summary || lead.details || "Lead details are ready for review.";
   $("#leadIntent").textContent = `${lead.snapshot?.intent || "Lead"}${lead.snapshot?.score ? ` - ${lead.snapshot.score}/100` : ""}`;
-  $("#leadSmsLine").textContent = lead.snapshot?.smsLine || "Reply YES to claim, NO to pass, INFO for details.";
+  $("#leadSmsLine").textContent = lead.snapshot?.smsLine || "Reply YES to claim, NO to pass, DETAILS for the lead card.";
   $("#leadFacts").innerHTML = [
     ["Route", lead.leadType === "direct" ? "Direct company request" : "SMS matching"],
     ["Service", lead.service],

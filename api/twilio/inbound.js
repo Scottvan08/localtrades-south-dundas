@@ -106,13 +106,13 @@ module.exports = async function inboundSmsHandler(req, res) {
       return sendJson(res, 200, { ok: true, command: "NO" });
     }
 
-    if (command === "INFO" || command === "DETAILS") {
+    if (command === "DETAILS" || command === "CARD" || command === "INFO") {
       const leadUrl = providerLeadUrl(req, attempt.token);
       await sendSms({ to: from, body: `Lead details: ${leadUrl}\nReply YES to claim or NO to pass.` });
-      return sendJson(res, 200, { ok: true, command: "INFO" });
+      return sendJson(res, 200, { ok: true, command: "DETAILS" });
     }
 
-    await sendSms({ to: from, body: "BuiltLocal: reply YES to claim, NO to pass, INFO for details, PAUSE to stop temporarily, or STOP to opt out." });
+    await sendSms({ to: from, body: "BuiltLocal: reply YES to claim, NO to pass, DETAILS for the lead card, PAUSE to stop temporarily, or STOP to opt out." });
     return sendJson(res, 200, { ok: true, command: "HELP" });
   } catch (error) {
     return sendJson(res, 500, { error: error.message || "Could not handle inbound SMS" });

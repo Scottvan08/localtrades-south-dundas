@@ -7,7 +7,7 @@ BuiltLocal lead routing is now designed around an SMS-first workflow:
 - Residents submit a guided `Request Help` intake.
 - BuiltLocal creates a Job Snapshot with score, summary, urgency, town, photo count, budget signal, and preferred contact method.
 - The API can text one matched provider at a time.
-- Providers can reply `YES`, `NO`, `INFO`, `PAUSE`, `RESUME`, or `STOP`.
+- Providers can reply `YES`, `NO`, `DETAILS`, `PAUSE`, `RESUME`, or `STOP`.
 - Providers can open `/lead/?token=...` to claim or pass without signing in.
 - The Pro dashboard remains a lead history and analytics layer.
 
@@ -92,7 +92,7 @@ localStorage.setItem("builtlocal_api_base", "https://your-api-host.example");
 
 8. Submit a `Request Help` lead for a matching category such as `Roofing`.
 9. Confirm the cellphone receives the BuiltLocal lead SMS.
-10. Reply `INFO`, `YES`, or `NO`.
+10. Reply `DETAILS`, `YES`, or `NO`.
 
 SMS lead-card links include the API host as a query parameter, so they work on a phone even when that phone has never visited the local test setup.
 
@@ -111,7 +111,7 @@ Provider commands:
 
 - `YES` or `CLAIM`: claim lead and unlock homeowner contact.
 - `NO` or `PASS`: pass lead.
-- `INFO`: receive no-login lead card link.
+- `DETAILS`: receive no-login lead card link. `INFO` is avoided in outbound copy because some SMS providers treat it as a built-in help keyword.
 - `PAUSE`: temporarily stop new leads.
 - `RESUME`: resume new leads.
 - `STOP`: opt out.

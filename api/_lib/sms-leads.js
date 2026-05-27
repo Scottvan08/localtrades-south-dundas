@@ -284,7 +284,7 @@ async function routeLeadToNextProvider({ lead, req, excludeProviderIds = [] }) {
   const leadLabel = (lead.lead_type || lead.leadType) === "direct" ? "BuiltLocal direct lead" : "BuiltLocal matched lead";
   const smsBody = [
     `${leadLabel}: ${lead.snapshot?.smsLine || `${lead.service} in ${lead.town}`}`,
-    `Reply YES to claim, NO to pass, INFO for details.`,
+    `Reply YES to claim, NO to pass, DETAILS for the lead card.`,
     `Link: ${leadUrl}`,
   ].join("\n");
 
