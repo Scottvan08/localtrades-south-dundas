@@ -59,6 +59,7 @@
             <button class="side-link" type="button" data-pro-tab="reviews"><i data-lucide="star"></i>Reviews</button>
             <button class="side-link" type="button" data-pro-tab="areas"><i data-lucide="map"></i>Service Areas</button>
             <button class="side-link" type="button" data-pro-tab="settings"><i data-lucide="settings"></i>Settings</button>
+            <a class="side-link" href="../?v=pro#directory"><i data-lucide="external-link"></i>Public Directory</a>
             <button class="side-link signout-link" type="button" data-sign-out><i data-lucide="log-out"></i>Sign Out</button>
           </div>
         </aside>
@@ -70,13 +71,13 @@
               <h1 id="dashboardTitle">Welcome back, BuiltLocal Demo Co.</h1>
               <span class="demo-mode-note">Lead history lives here, but providers can claim new jobs directly from SMS.</span>
             </div>
-            <a class="secondary-button" href="../?v=pro#directory">
+            <a class="secondary-button pro-public-link" href="../?v=pro#directory">
               <i data-lucide="external-link"></i>
               View Public Directory
             </a>
           </header>
 
-          <section class="stats-grid" aria-label="Business summary">
+          <section class="stats-grid pro-summary" aria-label="Business summary">
             <div><strong id="metricNewLeads">0</strong><span>New leads</span></div>
             <div><strong id="metricOpenLeads">0</strong><span>Open leads</span></div>
             <div><strong id="metricReviews">0</strong><span>Approved reviews</span></div>
@@ -85,7 +86,7 @@
 
           <section class="pro-panel active" data-pro-panel="leads">
             <div class="pro-two-column">
-              <article class="lead-panel">
+              <article class="lead-panel pro-lead-queue">
                 <div class="panel-head">
                   <strong>Lead queue</strong>
                   <button class="primary-button compact" type="button" data-create-lead>

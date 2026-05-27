@@ -91,6 +91,7 @@ const state = {
   areas: readObject(keys.areas, defaults.areas),
   settings: readObject(keys.settings, defaults.settings),
   selectedLeadId: "",
+  mobileLeadOpen: false,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -136,6 +137,7 @@ function wireEvents() {
     const createLeadButton = event.target.closest("[data-create-lead]");
     const saveLeadButton = event.target.closest("[data-save-lead]");
     const acceptLeadButton = event.target.closest("[data-accept-lead]");
+    const backLeadsButton = event.target.closest("[data-back-leads]");
     const addReviewButton = event.target.closest("[data-add-review]");
     const copyReviewButton = event.target.closest("[data-copy-review]");
 
@@ -151,10 +153,20 @@ function wireEvents() {
     }
     if (leadButton) {
       state.selectedLeadId = leadButton.dataset.leadId;
+      state.mobileLeadOpen = isMobilePro();
       renderLeads();
+      if (state.mobileLeadOpen) {
+        $("#leadDetail")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+    if (backLeadsButton) {
+      state.mobileLeadOpen = false;
+      renderLeads();
+      $("#leadList")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     if (createLeadButton) {
       createManualLead();
+      state.mobileLeadOpen = false;
       renderAll();
       setProTab("leads");
     }
@@ -263,9 +275,12 @@ function renderMetrics() {
 
 function renderLeads() {
   if (!state.selectedLeadId && state.leads.length) state.selectedLeadId = state.leads[0].id;
+  const sortedLeads = sortedLeadList();
+  const leadsPanel = document.querySelector('[data-pro-panel="leads"]');
+  leadsPanel?.classList.toggle("mobile-detail-open", state.mobileLeadOpen);
 
-  $("#leadList").innerHTML = state.leads.map((lead) => `
-    <button class="lead-item pro-lead-item${lead.id === state.selectedLeadId ? " active" : ""}" type="button" data-lead-id="${escapeHtml(lead.id)}">
+  $("#leadList").innerHTML = sortedLeads.map((lead) => `
+    <button class="lead-item pro-lead-item${lead.id === state.selectedLeadId ? " active" : ""}${isActionableLead(lead) ? " is-actionable" : ""}" type="button" data-lead-id="${escapeHtml(lead.id)}">
       <i data-lucide="file-text"></i>
       <div>
         <strong>${escapeHtml(lead.title)}</strong>
@@ -290,6 +305,10 @@ function leadDetailHtml(lead) {
   const leadTypeLabel = lead.leadType === "direct" ? "Direct company request" : "SMS matching request";
   return `
     <div class="detail-card">
+      <button class="secondary-button compact mobile-back-leads" type="button" data-back-leads>
+        <i data-lucide="arrow-left"></i>
+        Back to leads
+      </button>
       <p class="section-kicker">Lead detail</p>
       <h2>${escapeHtml(lead.title)}</h2>
       <span class="demo-mode-note">${escapeHtml(leadTypeLabel)}${lead.selectedProviderName ? ` for ${escapeHtml(lead.selectedProviderName)}` : ""}</span>
@@ -333,6 +352,30 @@ function leadDetailHtml(lead) {
       <span class="inline-success" id="leadSaved" hidden>Lead saved.</span>
     </div>
   `;
+}
+
+function sortedLeadList() {
+  return [...state.leads].sort((a, b) => {
+    const statusDiff = leadStatusRank(a.status) - leadStatusRank(b.status);
+    if (statusDiff) return statusDiff;
+    return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+  });
+}
+
+function leadStatusRank(status) {
+  if (["New", "SMS Routing", "Direct Sent"].includes(status)) return 0;
+  if (["Claimed", "Contacted", "Quoted"].includes(status)) return 1;
+  if (status === "Won") return 2;
+  if (status === "Archived") return 3;
+  return 4;
+}
+
+function isActionableLead(lead) {
+  return leadStatusRank(lead.status) === 0;
+}
+
+function isMobilePro() {
+  return window.matchMedia("(max-width: 760px)").matches;
 }
 
 function acceptSelectedLead() {
@@ -476,6 +519,7 @@ function renderSettingsForm() {
 }
 
 function setProTab(tabName) {
+  state.mobileLeadOpen = false;
   $$("[data-pro-tab]").forEach((button) => button.classList.toggle("active", button.dataset.proTab === tabName));
   $$("[data-pro-panel]").forEach((panel) => panel.classList.toggle("active", panel.dataset.proPanel === tabName));
 }
