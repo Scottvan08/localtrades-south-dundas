@@ -4,7 +4,7 @@
 
 BuiltLocal now uses an SD&G seed file with county and local-area fields so the prototype can feel local while covering Stormont, Dundas and Glengarry.
 
-Current seed total: 242 public listings.
+Current seed total: 244 public listings.
 
 Local-area coverage:
 
@@ -33,18 +33,18 @@ This pass broadened discovery with search-driven queries for weak local areas an
 
 Result:
 
-- 32 high-confidence rows added directly to `sdg-seed-listings.csv`.
-- 2 medium-confidence candidates held in `candidate-listings-sdg.csv` for owner confirmation or deeper review.
+- 34 high-confidence rows added directly to `sdg-seed-listings.csv`.
+- 0 medium-confidence candidates remain held in `candidate-listings-sdg.csv`.
 - Existing weak rows improved where stronger official evidence was found, including David Brown Construction Ltd, S.L Electric, and Casey Mechanical Inc.
 
 Coverage added:
 
 - North Stormont: drywall, concrete/precast, building supplies, general contracting, well drilling, landscaping/turf, and home-centre materials.
-- South Stormont: plumbing rows added for Ingleside/South Stormont; additional uncertain South Stormont rows held for review.
+- South Stormont: plumbing, septic/excavation, property care, and contractor rows added for Ingleside/Long Sault/South Stormont.
 - South Glengarry: septic, excavation, agricultural/rural construction, and septic pumping.
 - North Glengarry: HVAC, home repair, construction, and outdoor power equipment.
 - Cornwall & Area: HVAC, fencing, junk removal/light demolition, pressure washing/property maintenance, and outdoor power equipment.
-- Follow-up local verification added Flegg Equipment Ltd, Carl Bulloch Construction, Rose Mech, 613Environmental, and F & N Handy Men.
+- Follow-up local verification added Flegg Equipment Ltd, Carl Bulloch Construction, Rose Mech, 613Environmental, F & N Handy Men, B Moore On Grade, and Clearway Property Care.
 
 Review/activity handling:
 
@@ -95,4 +95,6 @@ These fields support the prototype's county selector, North/South local-area sel
 - `https://www.claudessmallengines.ca/map-hours-directions-atvs-snowmobiles-dealership--hours`
 - `https://houdemechanical.com`
 - `https://www.caseymechanical.com`
+- `https://clearwaypropertycare.ca/`
+- `https://www.facebook.com/BMOOREONGRADE/`
 - Nation Conservation septic directory PDFs for septic installer/designer candidates.
