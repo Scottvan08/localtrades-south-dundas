@@ -1,5 +1,6 @@
 const DEMO_EMAIL = "demo@builtlocal.ca";
 const DEMO_PIN = "2468";
+const LEAD_FILTERS = ["All", "Unreviewed", "New", "Claimed", "Contacted", "Quoted", "Won", "Archived"];
 
 const keys = {
   session: "builtlocal_pro_session",
@@ -92,10 +93,13 @@ const state = {
   settings: readObject(keys.settings, defaults.settings),
   selectedLeadId: "",
   mobileLeadOpen: false,
+  leadFilter: "All",
+  leadSort: "attention",
 };
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+let activeRecognition = null;
 
 init();
 
@@ -142,10 +146,18 @@ function wireEvents() {
     const copyReviewButton = event.target.closest("[data-copy-review]");
     const closeLeadActionsButton = event.target.closest("[data-close-lead-actions]");
     const forwardContactButton = event.target.closest("[data-forward-contact]");
+    const leadFilterButton = event.target.closest("[data-lead-filter]");
+    const dictateNotesButton = event.target.closest("[data-dictate-notes]");
 
     if (menuToggleButton) toggleProMenu();
     if (closeLeadActionsButton) closeLeadActionSheet();
     if (forwardContactButton) forwardContactCard();
+    if (leadFilterButton) {
+      state.leadFilter = leadFilterButton.dataset.leadFilter;
+      state.mobileLeadOpen = false;
+      renderLeads();
+    }
+    if (dictateNotesButton) toggleVoiceNotes();
     if (tabButton) {
       setProTab(tabButton.dataset.proTab);
       closeProMenu();
@@ -157,6 +169,7 @@ function wireEvents() {
     }
     if (leadButton) {
       state.selectedLeadId = leadButton.dataset.leadId;
+      markLeadReviewed(state.selectedLeadId);
       state.mobileLeadOpen = isMobilePro();
       renderLeads();
       if (state.mobileLeadOpen) {
@@ -223,6 +236,11 @@ function wireEvents() {
     writeObject(keys.settings, state.settings);
     flash("#settingsSaved");
   });
+
+  $("#leadSort").addEventListener("change", (event) => {
+    state.leadSort = event.target.value;
+    renderLeads();
+  });
 }
 
 function toggleProMenu() {
@@ -265,42 +283,55 @@ function renderHeader() {
 }
 
 function renderMetrics() {
-  const newLeads = state.leads.filter((lead) => lead.status === "New").length;
-  const openLeads = state.leads.filter((lead) => !["Won", "Archived"].includes(lead.status)).length;
-  const approvedReviews = state.reviews.filter((review) => review.status === "Approved").length;
-  const actioned = state.leads.filter((lead) => ["Claimed", "Contacted", "Quoted", "Won"].includes(lead.status)).length;
-  const responseRate = state.leads.length ? Math.round((actioned / state.leads.length) * 100) : 0;
+  const unreviewedLeads = state.leads.filter((lead) => !lead.reviewedAt).length;
+  const newReviews = state.reviews.filter((review) => review.status === "Pending").length;
 
-  $("#metricNewLeads").textContent = newLeads;
-  $("#metricOpenLeads").textContent = openLeads;
-  $("#metricReviews").textContent = approvedReviews;
-  $("#metricResponse").textContent = `${responseRate}%`;
+  $("#metricUnreviewedLeads").textContent = unreviewedLeads;
+  $("#metricNewReviews").textContent = newReviews;
 }
 
 function renderLeads() {
-  if (!state.selectedLeadId && state.leads.length) state.selectedLeadId = state.leads[0].id;
   const sortedLeads = sortedLeadList();
+  if (state.selectedLeadId && !sortedLeads.some((lead) => lead.id === state.selectedLeadId)) {
+    state.selectedLeadId = "";
+  }
   const leadsPanel = document.querySelector('[data-pro-panel="leads"]');
   leadsPanel?.classList.toggle("mobile-detail-open", state.mobileLeadOpen);
+  renderLeadControls();
 
-  $("#leadList").innerHTML = sortedLeads.map((lead) => `
-    <button class="lead-item pro-lead-item${lead.id === state.selectedLeadId ? " active" : ""}${isActionableLead(lead) ? " is-actionable" : ""}" type="button" data-lead-id="${escapeHtml(lead.id)}">
+  $("#leadList").innerHTML = sortedLeads.length ? sortedLeads.map((lead) => `
+    <button class="lead-item pro-lead-item${lead.id === state.selectedLeadId ? " active" : ""}${isActionableLead(lead) ? " is-actionable" : ""}${!lead.reviewedAt ? " is-unreviewed" : ""}" type="button" data-lead-id="${escapeHtml(lead.id)}">
       <i data-lucide="file-text"></i>
       <div>
         <strong>${escapeHtml(lead.title)}</strong>
-        <span>${escapeHtml(lead.town)} - ${relativeDate(lead.createdAt)}</span>
+        <span>${escapeHtml(lead.town)} - ${relativeDate(lead.createdAt)}${!lead.reviewedAt ? " - Unreviewed" : ""}</span>
       </div>
       <em class="${statusClass(lead.status)}">${escapeHtml(lead.status)}</em>
     </button>
-  `).join("");
+  `).join("") : `
+    <div class="empty-state">
+      <i data-lucide="inbox"></i>
+      <strong>No leads match this view</strong>
+      <span>Try All or a different status filter.</span>
+    </div>
+  `;
 
-  const selected = state.leads.find((lead) => lead.id === state.selectedLeadId);
+  const selected = state.selectedLeadId ? state.leads.find((lead) => lead.id === state.selectedLeadId) : null;
   $("#leadDetail").innerHTML = selected ? leadDetailHtml(selected) : `
     <i data-lucide="file-text"></i>
-    <strong>No leads yet</strong>
-    <span>Quote requests from the public site will appear here.</span>
+    <strong>Select a lead</strong>
+    <span>Lead details, status, and internal notes appear here.</span>
   `;
   initIcons();
+}
+
+function renderLeadControls() {
+  $("#leadFilterChips").innerHTML = LEAD_FILTERS.map((filter) => `
+    <button class="chip${state.leadFilter === filter ? " active" : ""}" type="button" data-lead-filter="${escapeHtml(filter)}">
+      ${escapeHtml(filter)}
+    </button>
+  `).join("");
+  $("#leadSort").value = state.leadSort;
 }
 
 function leadDetailHtml(lead) {
@@ -340,9 +371,18 @@ function leadDetailHtml(lead) {
           ).join("")}
         </select>
       </label>
-      <label>Internal notes
+      <label class="notes-label">
+        <span class="notes-label-head">
+          <span>Internal notes</span>
+          ${speechRecognitionConstructor() ? `
+            <button class="icon-button note-dictate-button" type="button" data-dictate-notes aria-label="Dictate note">
+              <i data-lucide="mic"></i>
+            </button>
+          ` : ""}
+        </span>
         <textarea id="leadNotes" rows="4">${escapeHtml(lead.notes)}</textarea>
       </label>
+      <span class="inline-success no-margin" id="voiceNoteStatus" hidden>Listening...</span>
       ${canAccept ? `
         <button class="secondary-button compact" type="button" data-accept-lead>
           <i data-lucide="check-circle"></i>
@@ -359,11 +399,37 @@ function leadDetailHtml(lead) {
 }
 
 function sortedLeadList() {
-  return [...state.leads].sort((a, b) => {
-    const statusDiff = leadStatusRank(a.status) - leadStatusRank(b.status);
-    if (statusDiff) return statusDiff;
-    return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-  });
+  return state.leads
+    .filter((lead) => leadMatchesFilter(lead))
+    .sort((a, b) => {
+      if (state.leadSort === "newest") return leadDateValue(b) - leadDateValue(a);
+      if (state.leadSort === "urgency") {
+        const urgencyDiff = urgencyRank(a.urgency) - urgencyRank(b.urgency);
+        return urgencyDiff || leadDateValue(b) - leadDateValue(a);
+      }
+      if (state.leadSort === "status") {
+        const statusDiff = leadStatusRank(a.status) - leadStatusRank(b.status);
+        return statusDiff || leadDateValue(b) - leadDateValue(a);
+      }
+      return attentionRank(a) - attentionRank(b) || leadDateValue(b) - leadDateValue(a);
+    });
+}
+
+function leadMatchesFilter(lead) {
+  if (state.leadFilter === "All") return true;
+  if (state.leadFilter === "Unreviewed") return !lead.reviewedAt;
+  return lead.status === state.leadFilter;
+}
+
+function leadDateValue(lead) {
+  return new Date(lead.createdAt || 0).getTime() || 0;
+}
+
+function attentionRank(lead) {
+  if (!lead.reviewedAt && isActionableLead(lead)) return 0;
+  if (!lead.reviewedAt) return 1;
+  if (isActionableLead(lead)) return 2;
+  return 10 + leadStatusRank(lead.status) + urgencyRank(lead.urgency) / 10;
 }
 
 function leadStatusRank(status) {
@@ -376,6 +442,22 @@ function leadStatusRank(status) {
 
 function isActionableLead(lead) {
   return leadStatusRank(lead.status) === 0;
+}
+
+function urgencyRank(urgency) {
+  if (/emergency/i.test(urgency || "")) return 0;
+  if (/asap|today/i.test(urgency || "")) return 1;
+  if (/week/i.test(urgency || "")) return 2;
+  if (/flexible|research/i.test(urgency || "")) return 4;
+  return 3;
+}
+
+function markLeadReviewed(leadId) {
+  const lead = state.leads.find((item) => item.id === leadId);
+  if (!lead || lead.reviewedAt) return;
+  lead.reviewedAt = new Date().toISOString();
+  writeObject(keys.leads, state.leads);
+  renderMetrics();
 }
 
 function isMobilePro() {
@@ -421,6 +503,7 @@ function createManualLead() {
     urgency: "Flexible",
     status: "New",
     notes: "",
+    reviewedAt: new Date().toISOString(),
     source: "Manual Pro entry",
     selectedProviderName: state.profile.name || "BuiltLocal Demo Co.",
     preferredContact: "Text",
@@ -439,6 +522,80 @@ function createManualLead() {
   state.leads.unshift(lead);
   state.selectedLeadId = lead.id;
   writeObject(keys.leads, state.leads);
+}
+
+function toggleVoiceNotes() {
+  const Recognition = speechRecognitionConstructor();
+  const textarea = $("#leadNotes");
+  if (!Recognition || !textarea) return;
+
+  if (activeRecognition) {
+    activeRecognition.stop();
+    return;
+  }
+
+  const recognition = new Recognition();
+  activeRecognition = recognition;
+  recognition.lang = "en-CA";
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  setVoiceNoteStatus("Listening...");
+  setDictateButtonActive(true);
+
+  recognition.onresult = (event) => {
+    const transcript = Array.from(event.results)
+      .map((result) => result[0]?.transcript || "")
+      .join(" ")
+      .trim();
+    if (transcript) appendNoteText(textarea, transcript);
+  };
+
+  recognition.onerror = () => {
+    setVoiceNoteStatus("Could not capture audio. You can still type the note.");
+  };
+
+  recognition.onend = () => {
+    activeRecognition = null;
+    setDictateButtonActive(false);
+    setTimeout(() => {
+      const status = $("#voiceNoteStatus");
+      if (status && status.textContent === "Listening...") status.hidden = true;
+    }, 400);
+  };
+
+  recognition.start();
+}
+
+function appendNoteText(textarea, transcript) {
+  const prefix = textarea.value.trim() ? "\n" : "";
+  textarea.value = `${textarea.value.trim()}${prefix}${sentenceCase(transcript)}`;
+  setVoiceNoteStatus("Voice note added. Tap Save Lead when ready.");
+}
+
+function sentenceCase(value) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return "";
+  const withCapital = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  return /[.!?]$/.test(withCapital) ? withCapital : `${withCapital}.`;
+}
+
+function setVoiceNoteStatus(message) {
+  const status = $("#voiceNoteStatus");
+  if (!status) return;
+  status.textContent = message;
+  status.hidden = false;
+}
+
+function setDictateButtonActive(isActive) {
+  const button = $("[data-dictate-notes]");
+  if (!button) return;
+  button.classList.toggle("active", isActive);
+  button.setAttribute("aria-label", isActive ? "Stop dictation" : "Dictate note");
+}
+
+function speechRecognitionConstructor() {
+  return window.SpeechRecognition || window.webkitSpeechRecognition || null;
 }
 
 function renderAnalytics() {

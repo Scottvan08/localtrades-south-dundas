@@ -99,8 +99,8 @@ function isSmsContact(value) {
 }
 
 function homeownerAcceptedMessage({ service, providerName }) {
-  const cleanProviderName = String(providerName || "a local provider").replace(/[.?!]+$/, "");
-  return `Your BuiltLocal request for ${service || "service"} has been accepted by ${cleanProviderName}. They should reach out shortly.`;
+  const cleanProviderName = String(providerName || "a local provider").trim();
+  return `Good news: ${cleanProviderName} accepted your BuiltLocal request for ${service || "service"}. They have your details and should reach out shortly.`;
 }
 
 function leadTimeoutMinutes(urgency) {

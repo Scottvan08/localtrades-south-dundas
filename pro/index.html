@@ -69,7 +69,6 @@
             <div>
               <p class="section-kicker">Contractor dashboard</p>
               <h1 id="dashboardTitle">Welcome back, BuiltLocal Demo Co.</h1>
-              <span class="demo-mode-note">Lead history lives here, but providers can claim new jobs directly from SMS.</span>
             </div>
             <a class="secondary-button pro-public-link" href="../?v=pro#directory">
               <i data-lucide="external-link"></i>
@@ -78,10 +77,8 @@
           </header>
 
           <section class="stats-grid pro-summary" aria-label="Business summary">
-            <div><strong id="metricNewLeads">0</strong><span>New leads</span></div>
-            <div><strong id="metricOpenLeads">0</strong><span>Open leads</span></div>
-            <div><strong id="metricReviews">0</strong><span>Approved reviews</span></div>
-            <div><strong id="metricResponse">0%</strong><span>Response rate</span></div>
+            <div><strong id="metricUnreviewedLeads">0</strong><span>Unreviewed leads</span></div>
+            <div><strong id="metricNewReviews">0</strong><span>New reviews</span></div>
           </section>
 
           <section class="pro-panel active" data-pro-panel="leads">
@@ -93,6 +90,18 @@
                     <i data-lucide="plus"></i>
                     Add Lead
                   </button>
+                </div>
+                <div class="lead-tools" aria-label="Lead list controls">
+                  <div class="lead-filter-chips" id="leadFilterChips"></div>
+                  <label class="lead-sort-control">
+                    <span>Sort</span>
+                    <select id="leadSort">
+                      <option value="attention">Needs attention</option>
+                      <option value="newest">Newest</option>
+                      <option value="urgency">Urgency</option>
+                      <option value="status">Status</option>
+                    </select>
+                  </label>
                 </div>
                 <div class="lead-list pro-lead-list" id="leadList"></div>
               </article>
