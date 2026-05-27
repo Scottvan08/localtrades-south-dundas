@@ -2,7 +2,9 @@
 
 Prototype for a rural-first local services directory for Stormont, Dundas and Glengarry.
 
-The app helps residents find local trades, contractors, and service providers who actually serve the surrounding rural area. It is currently a static prototype using an SD&G CSV seed database, Leaflet maps, county/local-area filtering, contractor profiles, quote/claim modals, and mock Pro/business access.
+The app helps residents find local trades, contractors, and service providers who actually serve the surrounding rural area. It is currently a static public directory using an SD&G CSV seed database, Leaflet maps, local-area filtering, contractor profiles, guided quote intake, claim modals, and mock Pro/business access.
+
+The lead product direction is SMS-first: residents submit a short guided request, BuiltLocal creates a Job Snapshot, and the hosted API can text one matched provider at a time. See `docs/SMS_LEADS_MVP.md`.
 
 ## Local Preview
 

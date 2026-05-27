@@ -4,22 +4,30 @@
 
 BuiltLocal should eventually give residents a better alternative to posting "who do you recommend?" in Facebook groups, but the early version should not create public job posts that receive no replies.
 
-## Early Managed Model
+## Early SMS-First Model
 
-Start with a managed `Request Help` model instead of an open public job board.
+Start with a managed `Request Help` model instead of an open public job board, but make the provider workflow SMS-first instead of dashboard-first.
 
 Resident flow:
 
-- Resident submits service needed, town/community, timing, and short project details.
-- BuiltLocal privately reviews the request.
-- BuiltLocal manually routes the lead to a small set of matching contractors or service providers who likely cover that area.
-- Resident receives a clear confirmation that matching is manual during launch.
+- Resident submits service needed, town/community, timing, property type, short project details, photos, budget signal, preferred contact method, and availability windows.
+- BuiltLocal turns the request into a short Job Snapshot.
+- BuiltLocal routes the lead to one matched contractor or service provider at a time.
+- Resident receives a clear confirmation that contact details unlock only after a provider accepts.
 
 Business flow:
 
-- Claimed or participating businesses can receive manually routed leads.
-- Leads are logged in the Pro dashboard as quote or job request cards.
-- Businesses can respond outside the platform at first by phone, email, or text.
+- Opted-in businesses receive SMS lead alerts.
+- Providers can reply `YES`, `NO`, or `INFO` without signing into Pro.
+- Leads are still logged in the Pro dashboard as history, analytics, and follow-up cards.
+- Businesses respond outside the platform at first by phone, email, or text after claiming.
+
+Provider SMS example:
+
+```text
+BuiltLocal lead: Septic repair in Ingleside. ASAP. 3 photos. High intent.
+Reply YES to claim, NO to pass, INFO for details.
+```
 
 ## Why Not Public Job Posts Yet
 
@@ -38,7 +46,8 @@ The launch goal is confidence: residents should feel BuiltLocal helps them find 
 Once enough contractors are claimed and responsive, the managed queue can become a product feature:
 
 - Request matching by category, town, service radius, and availability.
-- Pro dashboard lead inbox for claimed businesses.
+- SMS-first lead claiming for opted-in businesses.
+- Pro dashboard lead history for claimed businesses.
 - Basic lead status: new, contacted, declined, won, closed.
 - Optional paid lead routing or subscription tiers for frequent providers.
 - Public job posting only after contractor supply is strong enough by category.

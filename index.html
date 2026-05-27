@@ -295,51 +295,137 @@
       </nav>
     </div>
 
-    <dialog class="quote-dialog" id="quoteDialog">
-      <form class="quote-form" id="quoteForm">
+    <dialog class="quote-dialog lead-intake-dialog" id="quoteDialog">
+      <form class="quote-form lead-intake-form" id="quoteForm">
         <div class="modal-head">
           <div>
-            <p class="section-kicker">Request a Quote</p>
-            <h2>Tell us about your project</h2>
+            <p class="section-kicker">Request Help</p>
+            <h2>Get matched without chasing callbacks.</h2>
           </div>
           <button class="icon-button" type="button" data-close-dialog aria-label="Close quote form">
             <i data-lucide="x"></i>
           </button>
         </div>
-        <label>
-          Service needed
-          <select id="quoteService" name="service">
-            <option>Plumbing</option>
-            <option>Electrical</option>
-            <option>Roofing</option>
-            <option>Snow removal</option>
-            <option>General contractor</option>
-          </select>
-        </label>
-        <label>
-          Project details
-          <textarea id="quoteDetails" name="details" rows="4" placeholder="Leaking pipe, roof repair, driveway clearing..."></textarea>
-        </label>
-        <label>
-          Location
-          <input id="quoteTown" name="town" type="text" placeholder="Morrisburg, Iroquois, Cornwall..." />
-        </label>
-        <label>
-          Contact
-          <input id="quoteContact" name="contact" type="text" placeholder="Phone or email" />
-        </label>
-        <div class="choice-row">
-          <button class="chip active" type="button" data-urgency="ASAP">ASAP</button>
-          <button class="chip" type="button" data-urgency="Within a week">Within a week</button>
-          <button class="chip" type="button" data-urgency="Flexible">Flexible</button>
+        <p class="modal-note">BuiltLocal packages your request into a short Job Snapshot and routes it by SMS to one matched provider at a time. Your contact stays private until someone accepts.</p>
+
+        <div class="intake-grid">
+          <section class="intake-step">
+            <span>1</span>
+            <div>
+              <strong>Job</strong>
+              <p>What needs to happen?</p>
+            </div>
+          </section>
+          <label>
+            Service needed
+            <select id="quoteService" name="service">
+              <option>Plumbing</option>
+              <option>Electrical</option>
+              <option>Roofing</option>
+              <option>Septic Services</option>
+              <option>Snow Removal</option>
+              <option>General Contractor</option>
+              <option>Landscaping</option>
+              <option>HVAC</option>
+              <option>Excavation</option>
+              <option>Home Repair</option>
+              <option>Not sure</option>
+            </select>
+          </label>
+          <label>
+            Town or nearest community
+            <input id="quoteTown" name="town" type="text" placeholder="Morrisburg, Ingleside, Alexandria..." />
+          </label>
+          <label class="wide-label no-margin">
+            Short project details
+            <textarea id="quoteDetails" name="details" rows="4" placeholder="Leaking pipe, roof repair, driveway clearing, septic issue..."></textarea>
+          </label>
+
+          <section class="intake-step">
+            <span>2</span>
+            <div>
+              <strong>Fit</strong>
+              <p>Help the provider decide quickly.</p>
+            </div>
+          </section>
+          <div class="choice-row">
+            <button class="chip active" type="button" data-urgency="ASAP">ASAP</button>
+            <button class="chip" type="button" data-urgency="Within a week">This week</button>
+            <button class="chip" type="button" data-urgency="Flexible">Flexible</button>
+          </div>
+          <label>
+            Property type
+            <select id="quoteProperty" name="propertyType">
+              <option>Detached home</option>
+              <option>Rural home</option>
+              <option>Farm</option>
+              <option>Cottage</option>
+              <option>Commercial</option>
+              <option>Not sure</option>
+            </select>
+          </label>
+          <label>
+            Budget range
+            <select id="quoteBudget" name="budget">
+              <option>Not sure</option>
+              <option>Under $500</option>
+              <option>$500-$2,000</option>
+              <option>$2,000-$10,000</option>
+              <option>$10,000+</option>
+            </select>
+          </label>
+          <label>
+            Photos
+            <input id="quotePhotos" name="photos" type="file" accept="image/*" multiple />
+          </label>
+
+          <section class="intake-step">
+            <span>3</span>
+            <div>
+              <strong>Contact</strong>
+              <p>Released only after a provider claims.</p>
+            </div>
+          </section>
+          <label>
+            Your name
+            <input id="quoteName" name="name" type="text" placeholder="First name is fine" />
+          </label>
+          <label>
+            Phone or email
+            <input id="quoteContact" name="contact" type="text" placeholder="Phone or email" />
+          </label>
+          <label>
+            Preferred reply
+            <select id="quoteContactMethod" name="preferredContact">
+              <option>Text</option>
+              <option>Call</option>
+              <option>Email</option>
+            </select>
+          </label>
+          <label>
+            Good times to reach you
+            <input id="quoteAvailability" name="availability" type="text" placeholder="Weekdays after 4, Saturday morning..." />
+          </label>
         </div>
+
+        <div class="job-snapshot-preview" id="jobSnapshotPreview" aria-live="polite">
+          <i data-lucide="message-square-text"></i>
+          <div>
+            <strong>Job Snapshot</strong>
+            <span id="snapshotText">Service | town | timing | photos | intent score</span>
+          </div>
+        </div>
+
         <div class="form-success" id="quoteSuccess" hidden>
           <i data-lucide="check-circle"></i>
-          <span>Saved as a demo lead for BuiltLocal Demo Co. in this browser. Open Pro Dashboard to review it.</span>
+          <span>Request received. BuiltLocal will route it by SMS to one matched provider at a time. Your contact unlocks only after a provider accepts.</span>
+        </div>
+        <div class="form-error" id="quoteError" hidden>
+          Could not reach the SMS lead API, so this request was saved locally for review.
         </div>
         <button class="primary-button full" type="submit">
           <i data-lucide="send"></i>
-          Send Request
+          Start SMS Matching
         </button>
       </form>
     </dialog>

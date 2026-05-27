@@ -222,7 +222,7 @@ function renderMetrics() {
   const newLeads = state.leads.filter((lead) => lead.status === "New").length;
   const openLeads = state.leads.filter((lead) => !["Won", "Archived"].includes(lead.status)).length;
   const approvedReviews = state.reviews.filter((review) => review.status === "Approved").length;
-  const actioned = state.leads.filter((lead) => ["Contacted", "Quoted", "Won"].includes(lead.status)).length;
+  const actioned = state.leads.filter((lead) => ["Claimed", "Contacted", "Quoted", "Won"].includes(lead.status)).length;
   const responseRate = state.leads.length ? Math.round((actioned / state.leads.length) * 100) : 0;
 
   $("#metricNewLeads").textContent = newLeads;
@@ -255,21 +255,31 @@ function renderLeads() {
 }
 
 function leadDetailHtml(lead) {
+  const snapshot = lead.snapshot || {};
   return `
     <div class="detail-card">
       <p class="section-kicker">Lead detail</p>
       <h2>${escapeHtml(lead.title)}</h2>
+      <div class="job-snapshot-preview">
+        <i data-lucide="message-square-text"></i>
+        <div>
+          <strong>${escapeHtml(snapshot.intent || lead.intent || "Job Snapshot")}${snapshot.score || lead.score ? ` - ${escapeHtml(snapshot.score || lead.score)}/100` : ""}</strong>
+          <span>${escapeHtml(snapshot.smsLine || snapshot.summary || lead.details)}</span>
+        </div>
+      </div>
       <dl class="detail-list">
         <div><dt>Service</dt><dd>${escapeHtml(lead.service)}</dd></div>
         <div><dt>Town</dt><dd>${escapeHtml(lead.town)}</dd></div>
         <div><dt>Urgency</dt><dd>${escapeHtml(lead.urgency)}</dd></div>
         <div><dt>Contact</dt><dd>${escapeHtml(lead.contact)}</dd></div>
+        <div><dt>Preferred</dt><dd>${escapeHtml(lead.preferredContact || "Text")}</dd></div>
+        <div><dt>Photos</dt><dd>${escapeHtml(lead.photoCount || 0)}</dd></div>
         <div><dt>Source</dt><dd>${escapeHtml(lead.source)}</dd></div>
       </dl>
       <p>${escapeHtml(lead.details)}</p>
       <label>Status
         <select id="leadStatus">
-          ${["New", "Contacted", "Quoted", "Won", "Archived"].map((status) =>
+          ${["New", "SMS Routing", "Claimed", "Passed", "Contacted", "Quoted", "Won", "Archived"].map((status) =>
             `<option value="${status}"${status === lead.status ? " selected" : ""}>${status}</option>`
           ).join("")}
         </select>
@@ -310,6 +320,17 @@ function createManualLead() {
     status: "New",
     notes: "",
     source: "Manual Pro entry",
+    preferredContact: "Text",
+    propertyType: "Detached home",
+    budget: "Not sure",
+    availability: "Flexible",
+    photoCount: 0,
+    snapshot: {
+      score: 58,
+      intent: "Good fit",
+      smsLine: `General contractor in ${state.areas.primaryTown || "Morrisburg"}. Flexible. 0 photos. Good fit.`,
+      summary: "Manual lead added to test the SMS-first lead queue.",
+    },
     createdAt: new Date().toISOString(),
   };
   state.leads.unshift(lead);
@@ -319,7 +340,7 @@ function createManualLead() {
 
 function renderAnalytics() {
   const won = state.leads.filter((lead) => lead.status === "Won").length;
-  const contacted = state.leads.filter((lead) => ["Contacted", "Quoted", "Won"].includes(lead.status)).length;
+  const contacted = state.leads.filter((lead) => ["Claimed", "Contacted", "Quoted", "Won"].includes(lead.status)).length;
   const archived = state.leads.filter((lead) => lead.status === "Archived").length;
   const towns = [...new Set(state.leads.map((lead) => lead.town).filter(Boolean))];
   $("#analyticsTotal").textContent = state.leads.length;
@@ -327,7 +348,7 @@ function renderAnalytics() {
   $("#analyticsContacted").textContent = contacted;
   $("#analyticsArchived").textContent = archived;
   $("#analyticsSummary").textContent = state.leads.length
-    ? `${state.leads.length} leads across ${towns.length || 1} local areas. Most recent requests are shown first.`
+    ? `${state.leads.length} leads across ${towns.length || 1} local areas. SMS-routing leads can be claimed without opening the dashboard.`
     : "Lead activity will appear as residents request quotes.";
 }
 

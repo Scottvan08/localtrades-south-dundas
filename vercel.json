@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/routing/sweep",
+      "schedule": "*/5 * * * *"
+    }
+  ]
+}

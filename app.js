@@ -15,6 +15,8 @@ const state = {
   categoriesExpanded: false,
 };
 
+const apiBaseUrl = (window.BUILTLOCAL_API_BASE || localStorage.getItem("builtlocal_api_base") || "").replace(/\/$/, "");
+
 const imagePoolsByCategory = {
   Plumbing: [
     "https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=900&q=80",
@@ -1189,6 +1191,9 @@ function wireEvents() {
 
     if (quoteButton) {
       $("#quoteSuccess").hidden = true;
+      $("#quoteError").hidden = true;
+      prefillQuoteFromSelection();
+      updateJobSnapshotPreview();
       $("#quoteDialog").showModal();
       initIcons();
     }
@@ -1248,9 +1253,13 @@ function wireEvents() {
 
   $("#quoteForm").addEventListener("submit", (event) => {
     event.preventDefault();
-    saveQuoteLead();
-    $("#quoteSuccess").hidden = false;
-    initIcons();
+    saveQuoteLead(event.submitter);
+  });
+
+  ["input", "change"].forEach((eventName) => {
+    $("#quoteForm").addEventListener(eventName, (event) => {
+      if (event.target.closest("#quoteForm")) updateJobSnapshotPreview();
+    });
   });
 
   $("#claimForm").addEventListener("submit", (event) => {
@@ -1268,24 +1277,138 @@ function setDirectoryView(view) {
   $$("[data-view]").forEach((button) => button.classList.toggle("active", button.dataset.view === view));
 }
 
-function saveQuoteLead() {
-  const leads = readStoredArray("builtlocal_demo_leads", defaultPublicLeads());
+async function saveQuoteLead(submitButton) {
+  const payload = buildLeadPayload();
+  const snapshot = createLocalSnapshot(payload);
+  const originalButtonHtml = submitButton?.innerHTML;
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i data-lucide="loader-circle"></i> Matching...';
+    initIcons();
+  }
+
+  try {
+    const apiResult = await submitLeadToApi(payload);
+    saveLocalLead({ ...payload, snapshot, apiResult });
+    $("#quoteSuccess").hidden = false;
+    $("#quoteError").hidden = true;
+    $("#quoteForm").reset();
+    $("[data-urgency]").forEach((button, index) => button.classList.toggle("active", index === 0));
+    updateJobSnapshotPreview();
+  } catch (error) {
+    saveLocalLead({ ...payload, snapshot, apiError: error.message });
+    $("#quoteSuccess").hidden = false;
+    $("#quoteError").hidden = false;
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.innerHTML = originalButtonHtml;
+      initIcons();
+    }
+  }
+}
+
+function buildLeadPayload() {
   const selectedUrgency = $("[data-urgency].active")?.dataset.urgency || "ASAP";
-  const lead = {
-    id: `lead-${Date.now()}`,
-    title: `${$("#quoteService").value} request`,
+  const photoFiles = Array.from($("#quotePhotos").files || []).slice(0, 8);
+  return {
     service: $("#quoteService").value,
-    town: $("#quoteTown").value.trim() || state.selected?.town || "SD&G",
+    town: $("#quoteTown").value.trim() || state.selected?.town || state.region || "SD&G",
     details: $("#quoteDetails").value.trim() || "Resident requested follow-up from the public directory.",
+    contactName: $("#quoteName").value.trim(),
     contact: $("#quoteContact").value.trim() || "Contact not provided",
+    preferredContact: $("#quoteContactMethod").value,
     urgency: selectedUrgency,
-    status: "New",
-    notes: "",
-    source: "Public quote form",
+    propertyType: $("#quoteProperty").value,
+    budget: $("#quoteBudget").value,
+    availability: $("#quoteAvailability").value.trim(),
+    photoCount: photoFiles.length,
+    photos: photoFiles.map((file) => ({ name: file.name, size: file.size, type: file.type })),
+    selectedProviderId: state.selected?.id || "",
+    selectedProviderName: state.selected?.name || "",
+  };
+}
+
+async function submitLeadToApi(payload) {
+  const endpoint = `${apiBaseUrl}/api/leads`;
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "SMS lead API unavailable");
+  }
+
+  return response.json();
+}
+
+function saveLocalLead(payload) {
+  const leads = readStoredArray("builtlocal_demo_leads", defaultPublicLeads());
+  const apiLead = payload.apiResult?.lead || {};
+  const lead = {
+    id: apiLead.id || `lead-${Date.now()}`,
+    title: `${payload.service} in ${payload.town}`,
+    service: payload.service,
+    town: payload.town,
+    details: payload.details,
+    contact: payload.contact,
+    contactName: payload.contactName,
+    preferredContact: payload.preferredContact,
+    urgency: payload.urgency,
+    propertyType: payload.propertyType,
+    budget: payload.budget,
+    availability: payload.availability,
+    photoCount: payload.photoCount,
+    photos: payload.photos,
+    selectedProviderName: payload.selectedProviderName,
+    snapshot: apiLead.snapshot || payload.snapshot,
+    score: apiLead.score || payload.snapshot.score,
+    intent: apiLead.intent || payload.snapshot.intent,
+    status: payload.apiResult?.mode === "live" ? "SMS Routing" : "New",
+    notes: payload.apiError ? `API fallback: ${payload.apiError}` : "",
+    source: payload.apiResult?.mode === "live" ? "SMS intake" : "Local intake fallback",
     createdAt: new Date().toISOString(),
   };
   leads.unshift(lead);
   localStorage.setItem("builtlocal_demo_leads", JSON.stringify(leads));
+}
+
+function createLocalSnapshot(payload) {
+  const score = Math.min(100, 35
+    + (/asap|emergency|today/i.test(payload.urgency) ? 18 : 0)
+    + (payload.details.length > 24 ? 12 : 0)
+    + (payload.photoCount > 0 ? 14 : 0)
+    + (payload.budget && payload.budget !== "Not sure" ? 9 : 0)
+    + (payload.availability ? 6 : 0)
+    + (payload.contact ? 6 : 0));
+  const intent = score >= 78 ? "High intent" : score >= 58 ? "Good fit" : "Needs follow-up";
+  const photoText = payload.photoCount === 1 ? "1 photo" : `${payload.photoCount} photos`;
+  return {
+    title: `${payload.service} | ${payload.town} | ${payload.urgency}`,
+    score,
+    intent,
+    smsLine: `${payload.service} in ${payload.town}. ${payload.urgency}. ${photoText}. ${intent}.`,
+    summary: `${payload.service} request for a ${payload.propertyType.toLowerCase()} in ${payload.town}. ${payload.urgency}. ${payload.details}`,
+    nextStepScript: `Thanks for reaching out through BuiltLocal. I can take a quick look and confirm next steps. Are you available ${payload.availability || "this week"}?`,
+  };
+}
+
+function updateJobSnapshotPreview() {
+  const payload = buildLeadPayload();
+  const snapshot = createLocalSnapshot(payload);
+  const text = `${snapshot.smsLine}${payload.budget !== "Not sure" ? ` Budget: ${payload.budget}.` : ""}`;
+  $("#snapshotText").textContent = text;
+}
+
+function prefillQuoteFromSelection() {
+  if (!state.selected) return;
+  const options = Array.from($("#quoteService").options);
+  const matchingOption = options.find((option) => option.textContent.toLowerCase() === state.selected.displayCategory.toLowerCase());
+  if (matchingOption) $("#quoteService").value = matchingOption.value;
+  if (!$("#quoteTown").value) $("#quoteTown").value = state.selected.town || state.region || "";
 }
 
 function defaultPublicLeads() {

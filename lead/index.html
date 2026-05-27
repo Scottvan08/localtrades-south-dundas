@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BuiltLocal Lead</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body class="lead-page">
+    <main class="lead-card-shell">
+      <a class="brand" href="../" aria-label="Back to BuiltLocal">
+        <span class="brand-mark"><i data-lucide="sprout"></i></span>
+        <span><strong>BuiltLocal</strong><small>SMS lead</small></span>
+      </a>
+
+      <section class="lead-card-view" id="leadCard">
+        <p class="section-kicker">Job Snapshot</p>
+        <h1 id="leadTitle">Loading lead...</h1>
+        <p id="leadSummary">This secure lead card opens from an SMS link. No dashboard login required.</p>
+
+        <div class="lead-snapshot-grid" id="leadFacts"></div>
+
+        <div class="job-snapshot-preview">
+          <i data-lucide="message-square-text"></i>
+          <div>
+            <strong id="leadIntent">Lead intent</strong>
+            <span id="leadSmsLine">Reply YES by SMS to claim, or use the buttons below.</span>
+          </div>
+        </div>
+
+        <div class="form-success" id="leadContact" hidden>
+          <i data-lucide="check-circle"></i>
+          <span id="leadContactText"></span>
+        </div>
+        <div class="form-error" id="leadError" hidden></div>
+
+        <div class="profile-actions lead-action-row">
+          <button class="primary-button" type="button" data-lead-action="claim">
+            <i data-lucide="check"></i>
+            Claim Lead
+          </button>
+          <button class="secondary-button" type="button" data-lead-action="pass">
+            <i data-lucide="x"></i>
+            Pass
+          </button>
+          <a class="ghost-button" href="../pro/">
+            <i data-lucide="layout-dashboard"></i>
+            View History
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="./lead.js"></script>
+  </body>
+</html>
