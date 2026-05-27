@@ -18,6 +18,9 @@ create table if not exists providers (
 
 create table if not exists leads (
   id uuid primary key default gen_random_uuid(),
+  lead_type text not null default 'matching',
+  routing_mode text not null default 'sms_matching',
+  reroute_allowed boolean not null default true,
   service text not null,
   urgency text,
   town text,
@@ -32,6 +35,7 @@ create table if not exists leads (
   photo_metadata jsonb not null default '[]'::jsonb,
   selected_provider_id text,
   selected_provider_name text,
+  routing_policy jsonb not null default '{}'::jsonb,
   ai_summary text,
   score integer,
   intent text,
@@ -41,6 +45,11 @@ create table if not exists leads (
   claimed_at timestamptz,
   created_at timestamptz not null default now()
 );
+
+alter table leads add column if not exists lead_type text not null default 'matching';
+alter table leads add column if not exists routing_mode text not null default 'sms_matching';
+alter table leads add column if not exists reroute_allowed boolean not null default true;
+alter table leads add column if not exists routing_policy jsonb not null default '{}'::jsonb;
 
 create table if not exists routing_attempts (
   id uuid primary key default gen_random_uuid(),

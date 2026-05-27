@@ -300,13 +300,30 @@
         <div class="modal-head">
           <div>
             <p class="section-kicker">Request Help</p>
-            <h2>Get matched without chasing callbacks.</h2>
+            <h2 id="quoteTitle">Choose how you want this request handled.</h2>
           </div>
           <button class="icon-button" type="button" data-close-dialog aria-label="Close quote form">
             <i data-lucide="x"></i>
           </button>
         </div>
-        <p class="modal-note">BuiltLocal packages your request into a short Job Snapshot and routes it by SMS to one matched provider at a time. Your contact stays private until someone accepts.</p>
+        <p class="modal-note" id="quoteModeNote">Send a direct quote request to one company or let BuiltLocal match it with a nearby provider by SMS.</p>
+
+        <div class="quote-choice-grid" role="group" aria-label="Quote routing choice">
+          <button class="quote-choice active" type="button" data-quote-mode="direct">
+            <i data-lucide="send"></i>
+            <span>
+              <strong>Request this company</strong>
+              <em id="directChoiceText">Send this as a direct company lead.</em>
+            </span>
+          </button>
+          <button class="quote-choice" type="button" data-quote-mode="matching">
+            <i data-lucide="radar"></i>
+            <span>
+              <strong>Match me locally</strong>
+              <em>SMS routing can offer the request to nearby providers one at a time.</em>
+            </span>
+          </button>
+        </div>
 
         <div class="intake-grid">
           <section class="intake-step">
@@ -334,7 +351,7 @@
           </label>
           <label>
             Town or nearest community
-            <input id="quoteTown" name="town" type="text" placeholder="Morrisburg, Ingleside, Alexandria..." />
+            <input id="quoteTown" name="town" type="text" list="sdgTowns" placeholder="Morrisburg, Ingleside, Alexandria..." />
           </label>
           <label class="wide-label no-margin">
             Short project details
@@ -349,6 +366,7 @@
             </div>
           </section>
           <div class="choice-row">
+            <button class="chip" type="button" data-urgency="Emergency">Emergency</button>
             <button class="chip active" type="button" data-urgency="ASAP">ASAP</button>
             <button class="chip" type="button" data-urgency="Within a week">This week</button>
             <button class="chip" type="button" data-urgency="Flexible">Flexible</button>
@@ -365,7 +383,7 @@
             </select>
           </label>
           <label>
-            Budget range
+            Budget range <span class="optional-label">(optional)</span>
             <select id="quoteBudget" name="budget">
               <option>Not sure</option>
               <option>Under $500</option>
@@ -418,17 +436,39 @@
 
         <div class="form-success" id="quoteSuccess" hidden>
           <i data-lucide="check-circle"></i>
-          <span>Request received. BuiltLocal will route it by SMS to one matched provider at a time. Your contact unlocks only after a provider accepts.</span>
+          <span id="quoteSuccessText">Request received.</span>
         </div>
         <div class="form-error" id="quoteError" hidden>
           Could not reach the SMS lead API, so this request was saved locally for review.
         </div>
         <button class="primary-button full" type="submit">
           <i data-lucide="send"></i>
-          Start SMS Matching
+          <span id="quoteSubmitText">Send Request</span>
         </button>
       </form>
     </dialog>
+
+    <datalist id="sdgTowns">
+      <option value="Morrisburg"></option>
+      <option value="Iroquois"></option>
+      <option value="Williamsburg"></option>
+      <option value="Winchester"></option>
+      <option value="Chesterville"></option>
+      <option value="Long Sault"></option>
+      <option value="Ingleside"></option>
+      <option value="Finch"></option>
+      <option value="Berwick"></option>
+      <option value="Avonmore"></option>
+      <option value="Cornwall"></option>
+      <option value="Lancaster"></option>
+      <option value="Alexandria"></option>
+      <option value="Maxville"></option>
+    </datalist>
+
+    <button class="floating-back-search" type="button" data-back-results hidden>
+      <i data-lucide="arrow-left"></i>
+      Back to search
+    </button>
 
     <dialog class="quote-dialog" id="claimDialog">
       <form class="quote-form" id="claimForm">

@@ -31,6 +31,9 @@ module.exports = async function leadTokenHandler(req, res) {
     const claimed = lead.status === "claimed" && attempt.status === "claimed";
     return sendJson(res, 200, {
       id: lead.id,
+      leadType: lead.lead_type,
+      routingMode: lead.routing_mode,
+      rerouteAllowed: lead.reroute_allowed,
       service: lead.service,
       town: lead.town,
       urgency: lead.urgency,

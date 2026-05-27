@@ -11,8 +11,11 @@ const LEAD_STATUSES = {
 };
 
 const ROUTING_TIMEOUT_MINUTES = {
-  asap: 5,
-  default: 12,
+  emergency: 5,
+  asap: 10,
+  week: 30,
+  flexible: 120,
+  default: 30,
 };
 
 function sendJson(res, status, payload) {
@@ -72,9 +75,11 @@ function normalizePhone(value) {
 }
 
 function leadTimeoutMinutes(urgency) {
-  return /asap|emergency|today/i.test(urgency || "")
-    ? ROUTING_TIMEOUT_MINUTES.asap
-    : ROUTING_TIMEOUT_MINUTES.default;
+  if (/emergency/i.test(urgency || "")) return ROUTING_TIMEOUT_MINUTES.emergency;
+  if (/asap|today/i.test(urgency || "")) return ROUTING_TIMEOUT_MINUTES.asap;
+  if (/week/i.test(urgency || "")) return ROUTING_TIMEOUT_MINUTES.week;
+  if (/flexible|research/i.test(urgency || "")) return ROUTING_TIMEOUT_MINUTES.flexible;
+  return ROUTING_TIMEOUT_MINUTES.default;
 }
 
 function createLeadToken() {
@@ -102,12 +107,15 @@ function createSnapshot(input, aiSummary) {
   const score = scoreLead(input);
   const summary = aiSummary || fallbackSummary(input);
   const photoText = Number(input.photoCount || 0) === 1 ? "1 photo" : `${Number(input.photoCount || 0)} photos`;
+  const directPrefix = input.leadType === "direct" && input.selectedProviderName
+    ? `Direct request for ${input.selectedProviderName}: `
+    : "";
   return {
-    title: `${input.service || "Service"} | ${input.town || "SD&G"} | ${input.urgency || "Timing flexible"}`,
+    title: `${input.leadType === "direct" ? "Direct" : "Match"} | ${input.service || "Service"} | ${input.town || "SD&G"} | ${input.urgency || "Timing flexible"}`,
     score,
     intent: intentLabel(score),
     summary,
-    smsLine: `${input.service || "Service"} in ${input.town || "SD&G"}. ${input.urgency || "Timing flexible"}. ${photoText}. ${intentLabel(score)}.`,
+    smsLine: `${directPrefix}${input.service || "Service"} in ${input.town || "SD&G"}. ${input.urgency || "Timing flexible"}. ${photoText}. ${intentLabel(score)}.`,
     nextStepScript: `Thanks for reaching out through BuiltLocal. Based on your request, I can take a quick look and confirm next steps. Are you available ${input.availability || "this week"}?`,
   };
 }
@@ -203,7 +211,8 @@ async function findProvidersForLead(lead, excludeProviderIds = []) {
     { method: "GET", headers: { prefer: "" } },
   );
 
-  return providers
+  const normalizedSelectedName = normalizeBusinessName(lead.selected_provider_name || lead.selectedProviderName || "");
+  const matched = providers
     .filter((provider) => !excludeProviderIds.includes(provider.id))
     .filter((provider) => {
       const categories = provider.categories || [];
@@ -212,10 +221,33 @@ async function findProvidersForLead(lead, excludeProviderIds = []) {
       const townMatch = provider.serves_all_sdg || !area || towns.some((item) => String(item).toLowerCase().includes(decodeURIComponent(area).toLowerCase()));
       return serviceMatch && townMatch && provider.sms_number;
     })
-    .slice(0, 5);
+    .filter((provider) => {
+      if ((lead.lead_type || lead.leadType) !== "direct") return true;
+      if (!normalizedSelectedName) return false;
+      const providerName = normalizeBusinessName(provider.business_name);
+      return providerName === normalizedSelectedName
+        || providerName.includes(normalizedSelectedName)
+        || normalizedSelectedName.includes(providerName);
+    });
+
+  return matched.slice(0, (lead.lead_type || lead.leadType) === "direct" ? 1 : 5);
+}
+
+function normalizeBusinessName(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\b(inc|ltd|limited|co|company|corp|corporation)\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 async function routeLeadToNextProvider({ lead, req, excludeProviderIds = [] }) {
+  if ((lead.lead_type || lead.leadType) === "direct" && excludeProviderIds.length && !lead.reroute_allowed) {
+    return null;
+  }
+
   const providers = await findProvidersForLead(lead, excludeProviderIds);
   if (!providers.length) return null;
 
@@ -224,8 +256,9 @@ async function routeLeadToNextProvider({ lead, req, excludeProviderIds = [] }) {
   const timeoutMinutes = leadTimeoutMinutes(lead.urgency);
   const expiresAt = new Date(Date.now() + timeoutMinutes * 60 * 1000).toISOString();
   const leadUrl = providerLeadUrl(req, token);
+  const leadLabel = (lead.lead_type || lead.leadType) === "direct" ? "BuiltLocal direct lead" : "BuiltLocal matched lead";
   const smsBody = [
-    `BuiltLocal lead: ${lead.snapshot?.smsLine || `${lead.service} in ${lead.town}`}`,
+    `${leadLabel}: ${lead.snapshot?.smsLine || `${lead.service} in ${lead.town}`}`,
     `Reply YES to claim, NO to pass, INFO for details.`,
     `Link: ${leadUrl}`,
   ].join("\n");

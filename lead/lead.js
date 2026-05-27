@@ -40,6 +40,7 @@ function renderLead(lead) {
   $("#leadIntent").textContent = `${lead.snapshot?.intent || "Lead"}${lead.snapshot?.score ? ` - ${lead.snapshot.score}/100` : ""}`;
   $("#leadSmsLine").textContent = lead.snapshot?.smsLine || "Reply YES to claim, NO to pass, INFO for details.";
   $("#leadFacts").innerHTML = [
+    ["Route", lead.leadType === "direct" ? "Direct company request" : "SMS matching"],
     ["Service", lead.service],
     ["Town", lead.town],
     ["Urgency", lead.urgency],

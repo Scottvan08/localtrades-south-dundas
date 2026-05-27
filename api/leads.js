@@ -35,6 +35,9 @@ module.exports = async function leadsHandler(req, res) {
     const [lead] = await supabase("leads", {
       method: "POST",
       body: JSON.stringify({
+        lead_type: normalized.leadType,
+        routing_mode: normalized.routingMode,
+        reroute_allowed: normalized.rerouteAllowed,
         service: normalized.service,
         urgency: normalized.urgency,
         town: normalized.town,
@@ -49,6 +52,7 @@ module.exports = async function leadsHandler(req, res) {
         photo_metadata: normalized.photos,
         selected_provider_name: normalized.selectedProviderName,
         selected_provider_id: normalized.selectedProviderId,
+        routing_policy: normalized.routingPolicy,
         ai_summary: snapshot.summary,
         score: snapshot.score,
         intent: snapshot.intent,
@@ -77,9 +81,14 @@ async function readJson(req) {
 }
 
 function normalizeLeadInput(input) {
+  const leadType = input.leadType === "direct" ? "direct" : "matching";
+  const urgency = String(input.urgency || "Within a week").trim();
   return {
+    leadType,
+    routingMode: leadType === "direct" ? "direct_company" : "sms_matching",
+    rerouteAllowed: leadType !== "direct",
     service: String(input.service || "General contractor").trim(),
-    urgency: String(input.urgency || "Within a week").trim(),
+    urgency,
     town: String(input.town || "SD&G").trim(),
     propertyType: String(input.propertyType || "Not sure").trim(),
     details: String(input.details || "").trim(),
@@ -92,5 +101,19 @@ function normalizeLeadInput(input) {
     photos: Array.isArray(input.photos) ? input.photos.slice(0, 8) : [],
     selectedProviderId: String(input.selectedProviderId || "").trim(),
     selectedProviderName: String(input.selectedProviderName || "").trim(),
+    routingPolicy: {
+      type: leadType,
+      directFreeFirstYear: leadType === "direct",
+      premiumRouting: leadType === "matching",
+      timeoutMinutes: leadType === "matching" ? leadTimeoutMinutesForInput(urgency) : null,
+    },
   };
+}
+
+function leadTimeoutMinutesForInput(urgency) {
+  if (/emergency/i.test(urgency || "")) return 5;
+  if (/asap|today/i.test(urgency || "")) return 10;
+  if (/week/i.test(urgency || "")) return 30;
+  if (/flexible|research/i.test(urgency || "")) return 120;
+  return 30;
 }

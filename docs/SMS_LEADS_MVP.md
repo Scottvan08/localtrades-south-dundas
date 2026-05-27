@@ -11,6 +11,24 @@ BuiltLocal lead routing is now designed around an SMS-first workflow:
 - Providers can open `/lead/?token=...` to claim or pass without signing in.
 - The Pro dashboard remains a lead history and analytics layer.
 
+## Quote Choice Model
+
+Residents have two paths:
+
+- `Request this company`: a direct company lead. This is the simple/free first-year path. It targets the selected business only and does not automatically reroute unless the resident chooses matching in a future flow.
+- `Match me locally`: a premium SMS routing lead. BuiltLocal sends the Job Snapshot to one matched provider at a time and can reroute if the provider ignores or passes.
+
+Contractors can accept a lead by replying `YES` to SMS, opening the no-login lead card, or using `Accept Lead` in Pro. These actions are intended to mean the same thing: the provider is taking responsibility for the next follow-up and homeowner contact is unlocked.
+
+Routing windows for matched leads:
+
+- Emergency: about 5 minutes before reroute.
+- ASAP/today: about 10 minutes before reroute.
+- This week: about 30 minutes before reroute.
+- Flexible: kept open longer, about 120 minutes before reroute.
+
+Budget range is optional. `Not sure` is treated as a valid answer so residents are not blocked before they know pricing.
+
 ## Required Services
 
 Real SMS routing requires these environment variables in the hosted API environment:

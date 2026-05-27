@@ -13,6 +13,7 @@ const state = {
   serviceCircle: null,
   markers: new Map(),
   categoriesExpanded: false,
+  quoteMode: "matching",
 };
 
 const apiBaseUrl = (window.BUILTLOCAL_API_BASE || localStorage.getItem("builtlocal_api_base") || "").replace(/\/$/, "");
@@ -891,6 +892,8 @@ function selectListing(row, options = {}) {
   updateMarkerIcons();
   if (options.openMapPopup) openMapPopup(row, { pan: options.panMap });
   if (options.scrollTo === "profile") scrollToProfile();
+  const floatingBack = $(".floating-back-search");
+  if (floatingBack) floatingBack.hidden = false;
   initIcons();
 }
 
@@ -1168,6 +1171,7 @@ function wireEvents() {
     const backResultsButton = event.target.closest("[data-back-results]");
     const closeDialogButton = event.target.closest("[data-close-dialog]");
     const urgencyButton = event.target.closest("[data-urgency]");
+    const quoteModeButton = event.target.closest("[data-quote-mode]");
 
     if (popupProfileButton) {
       const row = state.rows.find((item) => item.id === popupProfileButton.dataset.popupProfile);
@@ -1193,13 +1197,20 @@ function wireEvents() {
       $("#quoteSuccess").hidden = true;
       $("#quoteError").hidden = true;
       prefillQuoteFromSelection();
+      setQuoteMode(state.selected ? "direct" : "matching");
       updateJobSnapshotPreview();
       $("#quoteDialog").showModal();
       initIcons();
     }
 
+    if (quoteModeButton) {
+      setQuoteMode(quoteModeButton.dataset.quoteMode);
+      updateJobSnapshotPreview();
+    }
+
     if (urgencyButton) {
       $$("[data-urgency]").forEach((button) => button.classList.toggle("active", button === urgencyButton));
+      updateQuoteModeCopy();
     }
 
     if (claimButton) {
@@ -1277,13 +1288,47 @@ function setDirectoryView(view) {
   $$("[data-view]").forEach((button) => button.classList.toggle("active", button.dataset.view === view));
 }
 
+function setQuoteMode(mode) {
+  state.quoteMode = mode === "direct" && state.selected ? "direct" : "matching";
+  updateQuoteModeCopy();
+}
+
+function updateQuoteModeCopy() {
+  const selectedName = state.selected?.name || "this company";
+  const isDirect = state.quoteMode === "direct";
+  $$("[data-quote-mode]").forEach((button) => {
+    const isActive = button.dataset.quoteMode === state.quoteMode;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+    if (button.dataset.quoteMode === "direct") {
+      button.disabled = !state.selected;
+    }
+  });
+
+  $("#directChoiceText").textContent = state.selected
+    ? `Send this request to ${selectedName}.`
+    : "Open a company profile to send a direct request.";
+  $("#quoteTitle").textContent = isDirect
+    ? `Request a quote from ${selectedName}.`
+    : "Get matched with a local contractor.";
+  $("#quoteModeNote").textContent = isDirect
+    ? "Direct company leads are the simple first-year path: the selected business gets the request, with no automatic rerouting unless matching is chosen."
+    : "BuiltLocal packages your request into a short Job Snapshot and routes it by SMS to one matched provider at a time. Your contact stays private until someone accepts.";
+  $("#quoteSubmitText").textContent = isDirect ? "Send Direct Request" : "Start SMS Matching";
+
+  const successText = isDirect
+    ? `Direct request saved for ${selectedName}. If this provider has SMS leads enabled, they receive the Job Snapshot and can accept by text or in Pro.`
+    : "Request received. BuiltLocal will route it by SMS to one matched provider at a time. Your contact unlocks only after a provider accepts.";
+  $("#quoteSuccessText").textContent = successText;
+}
+
 async function saveQuoteLead(submitButton) {
   const payload = buildLeadPayload();
   const snapshot = createLocalSnapshot(payload);
   const originalButtonHtml = submitButton?.innerHTML;
   if (submitButton) {
     submitButton.disabled = true;
-    submitButton.innerHTML = '<i data-lucide="loader-circle"></i> Matching...';
+    submitButton.innerHTML = `<i data-lucide="loader-circle"></i> ${payload.leadType === "direct" ? "Sending..." : "Matching..."}`;
     initIcons();
   }
 
@@ -1293,7 +1338,8 @@ async function saveQuoteLead(submitButton) {
     $("#quoteSuccess").hidden = false;
     $("#quoteError").hidden = true;
     $("#quoteForm").reset();
-    $("[data-urgency]").forEach((button, index) => button.classList.toggle("active", index === 0));
+    $("[data-urgency]").forEach((button) => button.classList.toggle("active", button.dataset.urgency === "ASAP"));
+    setQuoteMode(state.selected ? "direct" : "matching");
     updateJobSnapshotPreview();
   } catch (error) {
     saveLocalLead({ ...payload, snapshot, apiError: error.message });
@@ -1311,7 +1357,11 @@ async function saveQuoteLead(submitButton) {
 function buildLeadPayload() {
   const selectedUrgency = $("[data-urgency].active")?.dataset.urgency || "ASAP";
   const photoFiles = Array.from($("#quotePhotos").files || []).slice(0, 8);
+  const leadType = state.quoteMode === "direct" && state.selected ? "direct" : "matching";
   return {
+    leadType,
+    routingMode: leadType === "direct" ? "direct_company" : "sms_matching",
+    rerouteAllowed: leadType === "matching",
     service: $("#quoteService").value,
     town: $("#quoteTown").value.trim() || state.selected?.town || state.region || "SD&G",
     details: $("#quoteDetails").value.trim() || "Resident requested follow-up from the public directory.",
@@ -1350,7 +1400,12 @@ function saveLocalLead(payload) {
   const apiLead = payload.apiResult?.lead || {};
   const lead = {
     id: apiLead.id || `lead-${Date.now()}`,
-    title: `${payload.service} in ${payload.town}`,
+    title: payload.leadType === "direct" && payload.selectedProviderName
+      ? `${payload.service} for ${payload.selectedProviderName}`
+      : `${payload.service} in ${payload.town}`,
+    leadType: payload.leadType,
+    routingMode: payload.routingMode,
+    rerouteAllowed: payload.rerouteAllowed,
     service: payload.service,
     town: payload.town,
     details: payload.details,
@@ -1367,9 +1422,13 @@ function saveLocalLead(payload) {
     snapshot: apiLead.snapshot || payload.snapshot,
     score: apiLead.score || payload.snapshot.score,
     intent: apiLead.intent || payload.snapshot.intent,
-    status: payload.apiResult?.mode === "live" ? "SMS Routing" : "New",
+    status: payload.apiResult?.mode === "live"
+      ? payload.leadType === "direct" ? "Direct Sent" : "SMS Routing"
+      : "New",
     notes: payload.apiError ? `API fallback: ${payload.apiError}` : "",
-    source: payload.apiResult?.mode === "live" ? "SMS intake" : "Local intake fallback",
+    source: payload.apiResult?.mode === "live"
+      ? payload.leadType === "direct" ? "Direct company request" : "SMS matching request"
+      : "Local intake fallback",
     createdAt: new Date().toISOString(),
   };
   leads.unshift(lead);
@@ -1387,10 +1446,10 @@ function createLocalSnapshot(payload) {
   const intent = score >= 78 ? "High intent" : score >= 58 ? "Good fit" : "Needs follow-up";
   const photoText = payload.photoCount === 1 ? "1 photo" : `${payload.photoCount} photos`;
   return {
-    title: `${payload.service} | ${payload.town} | ${payload.urgency}`,
+    title: `${payload.leadType === "direct" ? "Direct" : "Match"} | ${payload.service} | ${payload.town} | ${payload.urgency}`,
     score,
     intent,
-    smsLine: `${payload.service} in ${payload.town}. ${payload.urgency}. ${photoText}. ${intent}.`,
+    smsLine: `${payload.leadType === "direct" && payload.selectedProviderName ? `Direct request for ${payload.selectedProviderName}: ` : ""}${payload.service} in ${payload.town}. ${payload.urgency}. ${photoText}. ${intent}.`,
     summary: `${payload.service} request for a ${payload.propertyType.toLowerCase()} in ${payload.town}. ${payload.urgency}. ${payload.details}`,
     nextStepScript: `Thanks for reaching out through BuiltLocal. I can take a quick look and confirm next steps. Are you available ${payload.availability || "this week"}?`,
   };
@@ -1399,8 +1458,18 @@ function createLocalSnapshot(payload) {
 function updateJobSnapshotPreview() {
   const payload = buildLeadPayload();
   const snapshot = createLocalSnapshot(payload);
-  const text = `${snapshot.smsLine}${payload.budget !== "Not sure" ? ` Budget: ${payload.budget}.` : ""}`;
+  const routingText = payload.leadType === "direct"
+    ? "Direct to selected company."
+    : `${rerouteCopy(payload.urgency)}.`;
+  const text = `${snapshot.smsLine}${payload.budget !== "Not sure" ? ` Budget: ${payload.budget}.` : ""} ${routingText}`;
   $("#snapshotText").textContent = text;
+}
+
+function rerouteCopy(urgency) {
+  if (/emergency/i.test(urgency)) return "Premium routing checks for a claim in about 5 minutes";
+  if (/asap|today/i.test(urgency)) return "Premium routing checks for a claim in about 10 minutes";
+  if (/week/i.test(urgency)) return "Premium routing checks for a claim in about 30 minutes";
+  return "Premium routing can keep the request open without urgent rerouting";
 }
 
 function prefillQuoteFromSelection() {
@@ -1416,6 +1485,8 @@ function defaultPublicLeads() {
     {
       id: "seed-roof-morrisburg",
       title: "Roof repair needed",
+      leadType: "matching",
+      routingMode: "sms_matching",
       service: "Roofing",
       town: "Morrisburg",
       details: "Small leak near the rear addition after heavy rain.",
@@ -1429,6 +1500,8 @@ function defaultPublicLeads() {
     {
       id: "seed-deck-iroquois",
       title: "Deck railing repair",
+      leadType: "direct",
+      routingMode: "direct_company",
       service: "General contractor",
       town: "Iroquois",
       details: "Looking for a quote to repair a loose railing and two steps.",
@@ -1437,11 +1510,14 @@ function defaultPublicLeads() {
       status: "Contacted",
       notes: "Left voicemail.",
       source: "Sample lead",
+      selectedProviderName: "BuiltLocal Demo Co.",
       createdAt: "2026-05-24T18:10:00.000Z",
     },
     {
       id: "seed-fence-brinston",
       title: "Fence section replacement",
+      leadType: "matching",
+      routingMode: "sms_matching",
       service: "General contractor",
       town: "Brinston",
       details: "Wind damaged a short fence section near the driveway.",

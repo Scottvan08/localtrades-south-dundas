@@ -25,6 +25,8 @@ const defaults = {
     {
       id: "seed-roof-morrisburg",
       title: "Roof repair needed",
+      leadType: "matching",
+      routingMode: "sms_matching",
       service: "Roofing",
       town: "Morrisburg",
       details: "Small leak near the rear addition after heavy rain.",
@@ -38,6 +40,8 @@ const defaults = {
     {
       id: "seed-deck-iroquois",
       title: "Deck railing repair",
+      leadType: "direct",
+      routingMode: "direct_company",
       service: "General contractor",
       town: "Iroquois",
       details: "Looking for a quote to repair a loose railing and two steps.",
@@ -46,11 +50,14 @@ const defaults = {
       status: "Contacted",
       notes: "Left voicemail.",
       source: "Sample lead",
+      selectedProviderName: "BuiltLocal Demo Co.",
       createdAt: "2026-05-24T18:10:00.000Z",
     },
     {
       id: "seed-fence-brinston",
       title: "Fence section replacement",
+      leadType: "matching",
+      routingMode: "sms_matching",
       service: "General contractor",
       town: "Brinston",
       details: "Wind damaged a short fence section near the driveway.",
@@ -127,6 +134,7 @@ function wireEvents() {
     const leadButton = event.target.closest("[data-lead-id]");
     const createLeadButton = event.target.closest("[data-create-lead]");
     const saveLeadButton = event.target.closest("[data-save-lead]");
+    const acceptLeadButton = event.target.closest("[data-accept-lead]");
     const addReviewButton = event.target.closest("[data-add-review]");
     const copyReviewButton = event.target.closest("[data-copy-review]");
 
@@ -144,6 +152,7 @@ function wireEvents() {
       renderAll();
       setProTab("leads");
     }
+    if (acceptLeadButton) acceptSelectedLead();
     if (saveLeadButton) saveSelectedLead();
     if (addReviewButton) {
       addMockReview();
@@ -256,10 +265,13 @@ function renderLeads() {
 
 function leadDetailHtml(lead) {
   const snapshot = lead.snapshot || {};
+  const canAccept = ["New", "SMS Routing", "Direct Sent"].includes(lead.status);
+  const leadTypeLabel = lead.leadType === "direct" ? "Direct company request" : "SMS matching request";
   return `
     <div class="detail-card">
       <p class="section-kicker">Lead detail</p>
       <h2>${escapeHtml(lead.title)}</h2>
+      <span class="demo-mode-note">${escapeHtml(leadTypeLabel)}${lead.selectedProviderName ? ` for ${escapeHtml(lead.selectedProviderName)}` : ""}</span>
       <div class="job-snapshot-preview">
         <i data-lucide="message-square-text"></i>
         <div>
@@ -279,7 +291,7 @@ function leadDetailHtml(lead) {
       <p>${escapeHtml(lead.details)}</p>
       <label>Status
         <select id="leadStatus">
-          ${["New", "SMS Routing", "Claimed", "Passed", "Contacted", "Quoted", "Won", "Archived"].map((status) =>
+          ${["New", "Direct Sent", "SMS Routing", "Claimed", "Passed", "Contacted", "Quoted", "Won", "Archived"].map((status) =>
             `<option value="${status}"${status === lead.status ? " selected" : ""}>${status}</option>`
           ).join("")}
         </select>
@@ -287,6 +299,12 @@ function leadDetailHtml(lead) {
       <label>Internal notes
         <textarea id="leadNotes" rows="4">${escapeHtml(lead.notes)}</textarea>
       </label>
+      ${canAccept ? `
+        <button class="secondary-button compact" type="button" data-accept-lead>
+          <i data-lucide="check-circle"></i>
+          Accept Lead
+        </button>
+      ` : ""}
       <button class="primary-button compact" type="button" data-save-lead>
         <i data-lucide="save"></i>
         Save Lead
@@ -294,6 +312,18 @@ function leadDetailHtml(lead) {
       <span class="inline-success" id="leadSaved" hidden>Lead saved.</span>
     </div>
   `;
+}
+
+function acceptSelectedLead() {
+  const selected = state.leads.find((lead) => lead.id === state.selectedLeadId);
+  if (!selected) return;
+  selected.status = "Claimed";
+  selected.notes = [selected.notes, "Accepted from Pro dashboard. This mirrors replying YES by SMS."].filter(Boolean).join("\n");
+  writeObject(keys.leads, state.leads);
+  renderMetrics();
+  renderAnalytics();
+  renderLeads();
+  flash("#leadSaved");
 }
 
 function saveSelectedLead() {
@@ -312,6 +342,9 @@ function createManualLead() {
   const lead = {
     id: `manual-${Date.now()}`,
     title: "Manual follow-up lead",
+    leadType: "direct",
+    routingMode: "direct_company",
+    rerouteAllowed: false,
     service: state.profile.service || "General contractor",
     town: state.areas.primaryTown || "Morrisburg",
     details: "Added from the Pro dashboard to test lead handling.",
@@ -320,6 +353,7 @@ function createManualLead() {
     status: "New",
     notes: "",
     source: "Manual Pro entry",
+    selectedProviderName: state.profile.name || "BuiltLocal Demo Co.",
     preferredContact: "Text",
     propertyType: "Detached home",
     budget: "Not sure",
