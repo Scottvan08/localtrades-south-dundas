@@ -60,6 +60,26 @@ const imagePoolsByCategory = {
     "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=900&q=80",
     "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=900&q=80",
   ],
+  "Septic Services": [
+    "https://images.unsplash.com/photo-1581093458791-9d42cc0f87bf?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1592993180300-974cd5c9760c?auto=format&fit=crop&w=900&q=80",
+  ],
+  Concrete: [
+    "https://images.unsplash.com/photo-1517089596392-fb9a9033e05b?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=900&q=80",
+  ],
+  Paving: [
+    "https://images.unsplash.com/photo-1592993180300-974cd5c9760c?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?auto=format&fit=crop&w=900&q=80",
+  ],
+  "Home Repair": [
+    "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1531834685032-c34bf0d84c77?auto=format&fit=crop&w=900&q=80",
+  ],
+  "Pressure Washing": [
+    "https://images.unsplash.com/photo-1604187351574-c75ca79f5807?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1524486361537-8ad15938e1a3?auto=format&fit=crop&w=900&q=80",
+  ],
   "Pest Control": [
     "https://images.unsplash.com/photo-1524486361537-8ad15938e1a3?auto=format&fit=crop&w=900&q=80",
     "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=900&q=80",
@@ -91,7 +111,7 @@ const iconByCategory = {
   "General Contractor": "hard-hat",
   Excavation: "construction",
   Roofing: "home",
-  Septic: "droplets",
+  "Septic Services": "droplets",
   Landscaping: "trees",
   "Snow Removal": "cloud-snow",
   "Tree Service": "tree-pine",
@@ -124,7 +144,7 @@ const popularTradeCategories = [
   "Excavation",
   "Landscaping",
   "Snow Removal",
-  "Septic",
+  "Septic Services",
   "Tree Service",
   "Home Repair",
   "Pest Control",
@@ -140,7 +160,7 @@ const preferredCategories = [
   "Plumbing",
   "Electrical",
   "Roofing",
-  "Septic",
+  "Septic Services",
   "Excavation",
   "Snow Removal",
   "HVAC",
@@ -163,6 +183,8 @@ const searchKeywordMap = {
   carpenter: ["General Contractor", "Home Repair"],
   carpentry: ["General Contractor", "Home Repair"],
   ceiling: ["Home Repair", "General Contractor"],
+  cabinet: ["Home Repair", "Building Supplies"],
+  cabinetry: ["Home Repair", "Building Supplies"],
   concrete: ["Concrete", "General Contractor", "Excavation"],
   contractor: ["General Contractor"],
   deck: ["General Contractor", "Home Repair", "Landscaping"],
@@ -211,7 +233,10 @@ const searchKeywordMap = {
   porch: ["General Contractor", "Home Repair"],
   pressure: ["Pressure Washing"],
   "pressure washing": ["Pressure Washing"],
-  pump: ["Plumbing", "Septic", "Drilling"],
+  junk: ["Waste Removal"],
+  "junk removal": ["Waste Removal"],
+  millwork: ["Home Repair", "Building Supplies"],
+  pump: ["Plumbing", "Septic Services", "Drilling"],
   renovation: ["General Contractor", "Home Repair"],
   renovations: ["General Contractor", "Home Repair"],
   repair: ["Home Repair", "General Contractor"],
@@ -220,7 +245,11 @@ const searchKeywordMap = {
   roofer: ["Roofing"],
   roofing: ["Roofing"],
   sealcoating: ["Paving"],
-  septic: ["Septic"],
+  "septic install": ["Septic Services", "Excavation"],
+  "septic installation": ["Septic Services", "Excavation"],
+  "septic pump": ["Septic Services"],
+  "septic pumping": ["Septic Services"],
+  septic: ["Septic Services"],
   shed: ["General Contractor", "Home Repair"],
   siding: ["Roofing", "General Contractor", "Home Repair"],
   snow: ["Snow Removal"],
@@ -236,7 +265,9 @@ const searchKeywordMap = {
   trench: ["Excavation"],
   truck: ["Logistics", "Towing"],
   waste: ["Waste Removal"],
-  water: ["Plumbing", "Septic", "Drilling"],
+  softwash: ["Pressure Washing"],
+  "soft wash": ["Pressure Washing"],
+  water: ["Plumbing", "Septic Services", "Drilling"],
   waterproofing: ["General Contractor", "Plumbing", "Home Repair"],
   well: ["Drilling", "Plumbing"],
   window: ["General Contractor", "Home Repair"],
@@ -452,7 +483,8 @@ function normalizePrimaryCategory(primary, secondary) {
   const haystack = `${primary} ${secondary}`.toLowerCase();
   if (haystack.includes("paving") || haystack.includes("asphalt") || haystack.includes("pavement")) return "Paving";
   if (haystack.includes("snow")) return "Snow Removal";
-  if (haystack.includes("septic")) return "Excavation";
+  if (haystack.includes("septic")) return "Septic Services";
+  if (haystack.includes("concrete") || haystack.includes("cement")) return "Concrete";
   if (haystack.includes("roof")) return "Roofing";
   if (haystack.includes("plumb")) return "Plumbing";
   if (haystack.includes("electric")) return "Electrical";
@@ -460,6 +492,8 @@ function normalizePrimaryCategory(primary, secondary) {
   if (haystack.includes("tree")) return "Tree Service";
   if (haystack.includes("pest")) return "Pest Control";
   if (haystack.includes("waste") || haystack.includes("junk")) return "Waste Removal";
+  if (haystack.includes("pressure washing") || haystack.includes("soft wash")) return "Pressure Washing";
+  if (haystack.includes("drywall") || haystack.includes("handyman") || haystack.includes("home repair")) return "Home Repair";
   if (haystack.includes("lawn") || haystack.includes("landscap")) return "Landscaping";
   if (haystack.includes("farm") || haystack.includes("agri")) return "Farm Equipment";
   if (haystack.includes("building supplies") || haystack.includes("home improvement")) return "Building Supplies";
