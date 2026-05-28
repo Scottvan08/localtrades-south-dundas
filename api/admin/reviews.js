@@ -5,8 +5,14 @@ module.exports = async function adminReviewsHandler(req, res) {
   if (!isAuthorized(req)) return sendJson(res, 401, { error: "Admin passcode required" });
 
   try {
-    if (req.method === "GET") return listPendingReviews(res);
-    if (req.method === "POST") return moderateReview(req, res);
+    if (req.method === "GET") {
+      await listPendingReviews(res);
+      return;
+    }
+    if (req.method === "POST") {
+      await moderateReview(req, res);
+      return;
+    }
     return sendJson(res, 405, { error: "Method not allowed" });
   } catch (error) {
     return sendJson(res, 500, { error: error.message || "Could not moderate reviews" });

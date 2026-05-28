@@ -4,8 +4,14 @@ module.exports = async function reviewsHandler(req, res) {
   if (handleCorsPreflight(req, res)) return;
 
   try {
-    if (req.method === "GET") return listApprovedReviews(req, res);
-    if (req.method === "POST") return createReview(req, res);
+    if (req.method === "GET") {
+      await listApprovedReviews(req, res);
+      return;
+    }
+    if (req.method === "POST") {
+      await createReview(req, res);
+      return;
+    }
     return sendJson(res, 405, { error: "Method not allowed" });
   } catch (error) {
     return sendJson(res, 500, { error: error.message || "Could not process reviews" });
@@ -28,21 +34,29 @@ async function listApprovedReviews(req, res) {
 
 async function createReview(req, res) {
   const input = normalizeReviewInput(await readBody(req));
-  const [review] = await supabase("reviews", {
-    method: "POST",
-    body: JSON.stringify({
-      provider_id: input.providerId,
-      provider_name: input.providerName,
-      reviewer_first_name: input.firstName,
-      reviewer_town: input.town,
-      reviewer_email: input.email,
-      service_used: input.serviceUsed,
-      rating: input.rating,
-      work_date: input.workDate,
-      review_text: input.reviewText,
-      status: "pending",
-    }),
-  });
+  let review;
+  try {
+    [review] = await supabase("reviews", {
+      method: "POST",
+      body: JSON.stringify({
+        provider_id: input.providerId,
+        provider_name: input.providerName,
+        reviewer_first_name: input.firstName,
+        reviewer_town: input.town,
+        reviewer_email: input.email,
+        service_used: input.serviceUsed,
+        rating: input.rating,
+        work_date: input.workDate,
+        review_text: input.reviewText,
+        status: "pending",
+      }),
+    });
+  } catch (error) {
+    if (isMissingReviewsTable(error)) {
+      return sendJson(res, 503, { error: "Reviews are not ready yet. Add the reviews table in Supabase, then try again." });
+    }
+    throw error;
+  }
   return sendJson(res, 201, { ok: true, review: publicPendingReview(review) });
 }
 

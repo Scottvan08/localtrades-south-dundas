@@ -1616,7 +1616,7 @@ async function submitReview(submitButton) {
       body: JSON.stringify(payload),
     });
     if (!response.ok) {
-      const message = await response.text();
+      const message = await readResponseError(response);
       throw new Error(message || "Could not submit review");
     }
     $("#reviewSuccess").hidden = false;
@@ -1632,6 +1632,16 @@ async function submitReview(submitButton) {
       submitButton.innerHTML = originalButtonHtml;
       initIcons();
     }
+  }
+}
+
+async function readResponseError(response) {
+  const text = await response.text();
+  try {
+    const payload = JSON.parse(text);
+    return payload.error || text;
+  } catch (error) {
+    return text;
   }
 }
 
