@@ -14,6 +14,7 @@ const state = {
   markers: new Map(),
   categoriesExpanded: false,
   quoteMode: "matching",
+  quoteContext: "matching",
 };
 
 const apiBaseUrl = (window.BUILTLOCAL_API_BASE || localStorage.getItem("builtlocal_api_base") || "").replace(/\/$/, "");
@@ -1162,6 +1163,8 @@ function wireEvents() {
     const categoryButton = event.target.closest("[data-category]");
     const listingButton = event.target.closest("[data-listing-id]");
     const quoteButton = event.target.closest("[data-open-quote]");
+    const directQuoteButton = event.target.closest("[data-open-direct-quote]");
+    const matchingQuoteButton = event.target.closest("[data-open-matching-quote]");
     const claimButton = event.target.closest("[data-claim-link]");
     const clearButton = event.target.closest("[data-clear-filters]");
     const categoryToggleButton = event.target.closest("[data-toggle-categories]");
@@ -1193,15 +1196,11 @@ function wireEvents() {
       selectListing(row, { scrollTo: "profile" });
     }
 
-    if (quoteButton) {
-      $("#quoteSuccess").hidden = true;
-      $("#quoteError").hidden = true;
-      prefillQuoteFromSelection();
-      setQuoteMode(state.selected ? "direct" : "matching");
-      updateJobSnapshotPreview();
-      $("#quoteDialog").showModal();
-      initIcons();
-    }
+    if (quoteButton) openQuoteDialog(state.selected ? "direct" : "matching");
+
+    if (directQuoteButton) openQuoteDialog("direct");
+
+    if (matchingQuoteButton) openQuoteDialog("matching");
 
     if (quoteModeButton) {
       setQuoteMode(quoteModeButton.dataset.quoteMode);
@@ -1296,6 +1295,8 @@ function setQuoteMode(mode) {
 function updateQuoteModeCopy() {
   const selectedName = state.selected?.name || "this company";
   const isDirect = state.quoteMode === "direct";
+  const choiceGrid = $(".quote-choice-grid");
+  if (choiceGrid) choiceGrid.hidden = state.quoteContext === "direct" || state.quoteContext === "matching";
   $$("[data-quote-mode]").forEach((button) => {
     const isActive = button.dataset.quoteMode === state.quoteMode;
     button.classList.toggle("active", isActive);
@@ -1310,16 +1311,32 @@ function updateQuoteModeCopy() {
     : "Open a company profile to send a direct request.";
   $("#quoteTitle").textContent = isDirect
     ? `Request a quote from ${selectedName}.`
-    : "Get matched with a local contractor.";
+    : "Post a job and get matched locally.";
   $("#quoteModeNote").textContent = isDirect
-    ? "Direct company leads are the simple first-year path: the selected business gets the request, with no automatic rerouting unless matching is chosen."
-    : "BuiltLocal packages your request into a short Job Snapshot and routes it by SMS to one matched provider at a time. Your contact stays private until someone accepts.";
-  $("#quoteSubmitText").textContent = isDirect ? "Send Direct Request" : "Start SMS Matching";
+    ? `This request goes directly to ${selectedName}. BuiltLocal will not match it with other providers unless you choose the Post a Job path.`
+    : "Tell BuiltLocal what you need. We package it into a short Job Snapshot and route it by SMS to one matched provider at a time.";
+  $("#quoteSubmitText").textContent = isDirect ? "Send Direct Request" : "Start Local Matching";
 
   const successText = isDirect
     ? `Direct request saved for ${selectedName}. If this provider has SMS leads enabled, they receive the Job Snapshot and can accept by text or in Pro.`
     : "Request received. BuiltLocal will route it by SMS to one matched provider at a time. Your contact unlocks only after a provider accepts.";
   $("#quoteSuccessText").textContent = successText;
+}
+
+function openQuoteDialog(context) {
+  const directContext = context === "direct" && state.selected;
+  state.quoteContext = directContext ? "direct" : "matching";
+  $("#quoteSuccess").hidden = true;
+  $("#quoteError").hidden = true;
+  if (directContext) {
+    prefillQuoteFromSelection();
+  } else if (!$("#quoteTown").value) {
+    $("#quoteTown").value = state.region || state.town || "";
+  }
+  setQuoteMode(directContext ? "direct" : "matching");
+  updateJobSnapshotPreview();
+  $("#quoteDialog").showModal();
+  initIcons();
 }
 
 async function saveQuoteLead(submitButton) {
@@ -1339,7 +1356,7 @@ async function saveQuoteLead(submitButton) {
     $("#quoteError").hidden = true;
     $("#quoteForm").reset();
     $("[data-urgency]").forEach((button) => button.classList.toggle("active", button.dataset.urgency === "ASAP"));
-    setQuoteMode(state.selected ? "direct" : "matching");
+    setQuoteMode(state.quoteContext === "direct" ? "direct" : "matching");
     updateJobSnapshotPreview();
   } catch (error) {
     saveLocalLead({ ...payload, snapshot, apiError: error.message });

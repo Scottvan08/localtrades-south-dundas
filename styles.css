@@ -334,6 +334,36 @@ a svg,
   box-shadow: var(--shadow);
 }
 
+.hero-quote-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 720px;
+  margin-top: 14px;
+}
+
+.hero-quote-actions span {
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 0.96rem;
+  line-height: 1.35;
+}
+
+.hero-post-job {
+  width: auto;
+  min-height: 46px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+}
+
+.hero-post-job:hover,
+.hero-post-job:focus-visible {
+  color: var(--green-dark);
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
 .input-wrap {
   display: flex;
   align-items: center;
@@ -2364,6 +2394,18 @@ h2 {
 
   .search-panel {
     grid-template-columns: 1fr;
+  }
+
+  .hero-quote-actions {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .hero-post-job {
+    justify-content: center;
+    width: 100%;
   }
 
   .trust-row {
