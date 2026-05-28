@@ -2750,7 +2750,7 @@ h2 {
     gap: 14px;
   }
 
-  .pro-panel[data-pro-panel="leads"] {
+  .pro-panel {
     order: 3;
   }
 
