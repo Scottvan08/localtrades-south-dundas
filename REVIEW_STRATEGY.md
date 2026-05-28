@@ -90,7 +90,7 @@ After reviews exist:
 
 ### Week 4: Public Trust Push
 
-- Post in local Facebook/community channels asking residents to help build a South Dundas local services review layer.
+- Post in local Facebook/community channels asking residents to help build an SD&G local services review layer.
 - Emphasize that reviews are original, moderated, and built for rural service-area discovery.
 - Publish approved reviews gradually.
 - Identify the categories where reviews are missing and target outreach there.

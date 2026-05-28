@@ -18,7 +18,7 @@ Resident flow:
 Business flow:
 
 - Opted-in businesses receive SMS lead alerts.
-- Providers can reply `YES`, `NO`, or `INFO` without signing into Pro.
+- Providers can reply `YES`, `NO`, or `DETAILS` without signing into Pro.
 - Leads are still logged in the Pro dashboard as history, analytics, and follow-up cards.
 - Businesses respond outside the platform at first by phone, email, or text after claiming.
 
@@ -26,7 +26,7 @@ Provider SMS example:
 
 ```text
 BuiltLocal lead: Septic repair in Ingleside. ASAP. 3 photos. High intent.
-Reply YES to claim, NO to pass, INFO for details.
+Reply YES to claim, NO to pass, DETAILS for the lead card.
 ```
 
 ## Why Not Public Job Posts Yet

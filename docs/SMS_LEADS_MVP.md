@@ -1,5 +1,16 @@
 # BuiltLocal SMS Leads MVP
 
+## Current Live Status
+
+Last verified May 28, 2026:
+
+- API host: `https://localtrades-south-dundas.vercel.app`
+- Public site: `https://scottvan08.github.io/localtrades-south-dundas`
+- `/api/health` reports Supabase and Twilio configured.
+- OpenAI is not configured, so fallback Job Snapshots are used.
+- `TWILIO_VALIDATE_WEBHOOKS=false` in the current deployed test setup.
+- The Vercel cron is daily on Hobby plan, not every 5 minutes.
+
 ## What This Adds
 
 BuiltLocal lead routing is now designed around an SMS-first workflow:
@@ -8,6 +19,7 @@ BuiltLocal lead routing is now designed around an SMS-first workflow:
 - BuiltLocal creates a Job Snapshot with score, summary, urgency, town, photo count, budget signal, and preferred contact method.
 - The API can text one matched provider at a time.
 - Providers can reply `YES`, `NO`, `DETAILS`, `PAUSE`, `RESUME`, or `STOP`.
+- `INFO` is accepted by the backend but should not be the primary outbound instruction because SMS providers can treat it as a built-in keyword.
 - Providers can open `/lead/?token=...` to claim or pass without signing in.
 - The Pro dashboard remains a lead history and analytics layer.
 
@@ -98,7 +110,15 @@ SMS lead-card links include the API host as a query parameter, so they work on a
 
 ## Timeout Rerouting
 
-`vercel.json` schedules `/api/routing/sweep` every 5 minutes. The sweep endpoint:
+`vercel.json` currently schedules `/api/routing/sweep` once daily:
+
+```text
+0 8 * * *
+```
+
+This is because the active Vercel Hobby account does not allow cron jobs more frequent than daily. The intended production behavior is a more frequent sweep, especially for emergency and ASAP leads.
+
+The sweep endpoint:
 
 - Finds SMS routing attempts that reached their timeout.
 - Marks the ignored attempt as expired.
@@ -111,7 +131,7 @@ Provider commands:
 
 - `YES` or `CLAIM`: claim lead and unlock homeowner contact.
 - `NO` or `PASS`: pass lead.
-- `DETAILS`: receive no-login lead card link. `INFO` is avoided in outbound copy because some SMS providers treat it as a built-in help keyword.
+- `DETAILS`: receive no-login lead card link. `INFO` is accepted but avoided in outbound copy because some SMS providers treat it as a built-in help keyword.
 - `PAUSE`: temporarily stop new leads.
 - `RESUME`: resume new leads.
 - `STOP`: opt out.
