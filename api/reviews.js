@@ -58,7 +58,7 @@ module.exports = async function reviewsHandler(req, res) {
     }
     return sendJson(res, 405, { error: "Method not allowed" });
   } catch (error) {
-    return sendJson(res, 500, { error: error.message || "Could not process reviews" });
+    return sendJson(res, error.statusCode || 500, { error: error.message || "Could not process reviews" });
   }
 };
 
@@ -115,16 +115,16 @@ function normalizeReviewInput(input) {
   const providerId = String(input.providerId || "").trim();
   const workDate = String(input.workDate || "").trim();
 
-  if (!providerId || !providerName) throw new Error("Choose a business from the BuiltLocal directory list");
-  if (!/^[a-z][a-z .'-]{1,39}$/i.test(firstName)) throw new Error("Enter your first name only");
+  if (!providerId || !providerName) throw validationError("Choose a business from the BuiltLocal directory list");
+  if (!/^[a-z][a-z .'-]{1,39}$/i.test(firstName)) throw validationError("Enter your first name only");
   if (!validReviewTowns.some((validTown) => normalizeReviewText(validTown) === normalizeReviewText(town))) {
-    throw new Error("Choose a town or area from the SD&G suggestions");
+    throw validationError("Choose a town or area from the SD&G suggestions");
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(email)) throw new Error("Valid email is required");
-  if (!/[a-z]/i.test(serviceUsed) || serviceUsed.length < 3 || serviceUsed.length > 80) throw new Error("Service used is required");
-  if (workDate && !isValidWorkDate(workDate)) throw new Error("Use a month and year like May 2026");
-  if (!Number.isInteger(rating) || rating < 1 || rating > 5) throw new Error("Rating must be between 1 and 5");
-  if (reviewText.length < 20) throw new Error("Review must be at least 20 characters");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(email)) throw validationError("Valid email is required");
+  if (!/[a-z]/i.test(serviceUsed) || serviceUsed.length < 3 || serviceUsed.length > 80) throw validationError("Service used is required");
+  if (workDate && !isValidWorkDate(workDate)) throw validationError("Use a month and year like May 2026");
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) throw validationError("Rating must be between 1 and 5");
+  if (reviewText.length < 20) throw validationError("Review must be at least 20 characters");
 
   return {
     providerId,
@@ -137,6 +137,12 @@ function normalizeReviewInput(input) {
     workDate,
     reviewText,
   };
+}
+
+function validationError(message) {
+  const error = new Error(message);
+  error.statusCode = 400;
+  return error;
 }
 
 function normalizeReviewText(value) {
