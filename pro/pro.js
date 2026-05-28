@@ -138,6 +138,7 @@ function wireEvents() {
     const tabButton = event.target.closest("[data-pro-tab]");
     const signOutButton = event.target.closest("[data-sign-out]");
     const menuToggleButton = event.target.closest("[data-pro-menu-toggle]");
+    const mobileMoreButton = event.target.closest("[data-pro-more-toggle]");
     const leadButton = event.target.closest("[data-lead-id]");
     const createLeadButton = event.target.closest("[data-create-lead]");
     const saveLeadButton = event.target.closest("[data-save-lead]");
@@ -159,6 +160,7 @@ function wireEvents() {
     const closeStatusButton = event.target.closest("[data-close-status-menu]");
 
     if (menuToggleButton) toggleProMenu();
+    if (mobileMoreButton) toggleMobileMore();
     if (closeLeadActionsButton) closeLeadActionSheet();
     if (forwardContactButton) forwardContactCard();
     if (contactLeadButton) showSelectedLeadActionSheet();
@@ -177,13 +179,16 @@ function wireEvents() {
     if (tabButton) {
       setProTab(tabButton.dataset.proTab);
       closeProMenu();
+      closeMobileMore();
     }
     if (signOutButton) {
       localStorage.removeItem(keys.session);
       showAuthenticatedView(false);
       closeProMenu();
+      closeMobileMore();
     }
     if (leadButton) {
+      closeMobileMore();
       state.selectedLeadId = leadButton.dataset.leadId;
       markLeadReviewed(state.selectedLeadId);
       state.mobileLeadOpen = isMobilePro();
@@ -275,6 +280,23 @@ function closeProMenu() {
   button.setAttribute("aria-expanded", "false");
 }
 
+function toggleMobileMore() {
+  const panel = $("#proMobileMore");
+  const button = $("[data-pro-more-toggle]");
+  if (!panel || !button) return;
+  const willOpen = panel.hidden;
+  panel.hidden = !willOpen;
+  button.setAttribute("aria-expanded", String(willOpen));
+}
+
+function closeMobileMore() {
+  const panel = $("#proMobileMore");
+  const button = $("[data-pro-more-toggle]");
+  if (!panel || !button) return;
+  panel.hidden = true;
+  button.setAttribute("aria-expanded", "false");
+}
+
 function showAuthenticatedView(isSignedIn) {
   $("#loginView").hidden = isSignedIn;
   $("#dashboardView").hidden = !isSignedIn;
@@ -318,16 +340,29 @@ function renderLeads() {
   renderLeadControls();
   renderStatusDialog();
 
-  $("#leadList").innerHTML = sortedLeads.length ? sortedLeads.map((lead) => `
+  $("#leadList").innerHTML = sortedLeads.length ? sortedLeads.map((lead) => {
+    const snapshot = lead.snapshot || {};
+    const summary = snapshot.smsLine || snapshot.summary || lead.details || "Lead details ready for review.";
+    const leadMeta = [
+      lead.town,
+      lead.urgency,
+      relativeDate(lead.createdAt),
+      !lead.reviewedAt ? "Unreviewed" : "",
+    ].filter(Boolean).join(" - ");
+    const routeLabel = lead.leadType === "direct" ? "Direct" : "SMS match";
+    return `
     <button class="lead-item pro-lead-item${lead.id === state.selectedLeadId ? " active" : ""}${isActionableLead(lead) ? " is-actionable" : ""}${!lead.reviewedAt ? " is-unreviewed" : ""}" type="button" data-lead-id="${escapeHtml(lead.id)}">
-      <i data-lucide="file-text"></i>
-      <div>
+      <span class="lead-card-icon"><i data-lucide="${lead.leadType === "direct" ? "send" : "radio"}"></i></span>
+      <div class="lead-card-copy">
+        <span class="lead-card-topline">${escapeHtml(routeLabel)}</span>
         <strong>${escapeHtml(lead.title)}</strong>
-        <span>${escapeHtml(lead.town)} - ${relativeDate(lead.createdAt)}${!lead.reviewedAt ? " - Unreviewed" : ""}</span>
+        <span>${escapeHtml(leadMeta)}</span>
+        <small>${escapeHtml(summary)}</small>
       </div>
       <em class="${statusClass(lead.status)}">${escapeHtml(lead.status)}</em>
     </button>
-  `).join("") : `
+  `;
+  }).join("") : `
     <div class="empty-state">
       <i data-lucide="inbox"></i>
       <strong>No leads match this view</strong>
@@ -388,7 +423,12 @@ function leadDetailHtml(lead) {
           <span>${escapeHtml(lead.status)}</span>
         </button>
       </div>
-      <span class="demo-mode-note">${escapeHtml(leadTypeLabel)}${lead.selectedProviderName ? ` for ${escapeHtml(lead.selectedProviderName)}` : ""}</span>
+      <div class="lead-hero-meta">
+        <span><i data-lucide="map-pin"></i>${escapeHtml(lead.town)}</span>
+        <span><i data-lucide="clock"></i>${escapeHtml(lead.urgency)}</span>
+        <span><i data-lucide="${lead.leadType === "direct" ? "send" : "radio"}"></i>${escapeHtml(leadTypeLabel)}</span>
+      </div>
+      <span class="demo-mode-note">${lead.selectedProviderName ? `For ${escapeHtml(lead.selectedProviderName)}` : "Homeowner contact is handled through the existing lead workflow."}</span>
       <div class="job-snapshot-preview">
         <i data-lucide="message-square-text"></i>
         <div>
@@ -888,13 +928,6 @@ function contactActionsForLead(lead) {
         : "";
   const sorted = actions.map((action) => ({ ...action, primary: action.id === preferredId }));
   sorted.sort((a, b) => Number(b.primary) - Number(a.primary));
-  sorted.push({
-    kind: "button",
-    id: "forward",
-    label: "Forward contact card",
-    help: "Share the snapshot with someone on your team",
-    icon: "share-2",
-  });
   return sorted;
 }
 
@@ -980,6 +1013,9 @@ function setProTab(tabName) {
   $(".pro-main")?.classList.remove("mobile-detail-open");
   $$("[data-pro-tab]").forEach((button) => button.classList.toggle("active", button.dataset.proTab === tabName));
   $$("[data-pro-panel]").forEach((panel) => panel.classList.toggle("active", panel.dataset.proPanel === tabName));
+  const moreTabs = ["analytics", "areas", "settings"];
+  const moreToggle = $("[data-pro-more-toggle]");
+  if (moreToggle) moreToggle.classList.toggle("active", moreTabs.includes(tabName));
 }
 
 function readObject(key, fallback) {

@@ -224,6 +224,33 @@
             </form>
           </section>
         </div>
+
+        <nav class="pro-mobile-tabbar" aria-label="Pro mobile navigation">
+          <button class="active" type="button" data-pro-tab="leads">
+            <i data-lucide="inbox"></i>
+            <span>Leads</span>
+          </button>
+          <button type="button" data-pro-tab="reviews">
+            <i data-lucide="star"></i>
+            <span>Reviews</span>
+          </button>
+          <button type="button" data-pro-tab="profile">
+            <i data-lucide="user-round-cog"></i>
+            <span>Profile</span>
+          </button>
+          <button type="button" data-pro-more-toggle aria-expanded="false" aria-controls="proMobileMore">
+            <i data-lucide="menu"></i>
+            <span>More</span>
+          </button>
+        </nav>
+
+        <div class="pro-mobile-more" id="proMobileMore" hidden>
+          <button type="button" data-pro-tab="analytics"><i data-lucide="bar-chart-3"></i>Analytics</button>
+          <button type="button" data-pro-tab="areas"><i data-lucide="map"></i>Service Areas</button>
+          <button type="button" data-pro-tab="settings"><i data-lucide="settings"></i>Settings</button>
+          <a href="../?v=pro#directory"><i data-lucide="external-link"></i>Public Directory</a>
+          <button type="button" data-sign-out><i data-lucide="log-out"></i>Sign Out</button>
+        </div>
       </section>
     </main>
 
