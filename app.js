@@ -757,6 +757,7 @@ function rowSearchScore(row, searchText) {
   if (normalizedName.startsWith(normalizedSearch)) return 330;
   if (nameTokens.some((token) => token === normalizedSearch)) return 315;
   if (normalizedSearch.length >= 2 && nameTokens.some((token) => token.startsWith(normalizedSearch))) return 300;
+  if (queryWordsMatchTokens(normalizedSearch, nameTokens)) return 285;
 
   const normalizedHaystack = normalizeSearchText(rowSearchHaystack(row));
   const haystackTokens = normalizedHaystack.split(" ").filter(Boolean);
@@ -767,7 +768,50 @@ function rowSearchScore(row, searchText) {
 
   if (normalizedHaystack.includes(normalizedSearch)) return 220;
   if (compactSearch.length >= 4 && normalizedHaystack.replace(/\s+/g, "").includes(compactSearch)) return 210;
-  return 0;
+
+  const fieldMatches = [
+    { text: row.displayCategory, weight: 190 },
+    { text: row.primary_category, weight: 180 },
+    { text: row.secondary_categories, weight: 165 },
+    { text: row.service_area_notes, weight: 120 },
+    { text: row.notes, weight: 115 },
+    { text: row.town, weight: 90 },
+    { text: row.local_area, weight: 80 },
+    { text: row.county, weight: 70 },
+    { text: row.serviceAreas.join(" "), weight: 65 },
+  ];
+
+  const bestFieldScore = fieldMatches.reduce((best, field) => {
+    const fieldTokens = normalizeSearchText(field.text).split(" ").filter(Boolean);
+    if (!fieldTokens.length) return best;
+    if (queryWordsMatchTokens(normalizedSearch, fieldTokens)) return Math.max(best, field.weight);
+    return best;
+  }, 0);
+
+  if (bestFieldScore) return bestFieldScore;
+
+  return queryWordsMatchTokens(normalizedSearch, haystackTokens) ? 55 : 0;
+}
+
+function queryWordsMatchTokens(searchText, tokens) {
+  const searchWords = searchText.split(" ").filter((word) => word.length >= 2);
+  if (!searchWords.length || !tokens.length) return false;
+
+  let matched = 0;
+  searchWords.forEach((word) => {
+    if (tokens.some((token) => tokenMatchesSearch(token, word))) matched += 1;
+  });
+
+  if (searchWords.length === 1) return matched === 1;
+  return matched / searchWords.length >= 0.65;
+}
+
+function tokenMatchesSearch(token, searchWord) {
+  if (!token || !searchWord) return false;
+  if (token === searchWord) return true;
+  if (searchWord.length >= 3 && token.startsWith(searchWord)) return true;
+  if (searchWord.length >= 4 && token.includes(searchWord)) return true;
+  return isFuzzyWordMatch(token, searchWord);
 }
 
 function categoriesForSearch(searchText) {
