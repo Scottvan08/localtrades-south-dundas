@@ -1631,9 +1631,10 @@ async function submitReview(submitButton) {
       const message = await readResponseError(response);
       throw new Error(message || "Could not submit review");
     }
-    $("#reviewSuccess").hidden = false;
     $("#reviewError").hidden = true;
     $("#reviewForm").reset();
+    $("#reviewDialog").close();
+    showSiteNotice("Thanks. Your review was submitted and will be checked before publishing.");
   } catch (error) {
     $("#reviewSuccess").hidden = true;
     $("#reviewError").hidden = false;
@@ -1645,6 +1646,23 @@ async function submitReview(submitButton) {
       initIcons();
     }
   }
+}
+
+function showSiteNotice(message) {
+  let notice = $("#siteNotice");
+  if (!notice) {
+    notice = document.createElement("div");
+    notice.id = "siteNotice";
+    notice.className = "site-notice";
+    notice.setAttribute("role", "status");
+    document.body.appendChild(notice);
+  }
+  notice.innerHTML = `<i data-lucide="check-circle"></i><span>${escapeHtml(message)}</span>`;
+  notice.hidden = false;
+  initIcons();
+  window.setTimeout(() => {
+    notice.hidden = true;
+  }, 5200);
 }
 
 function validateReviewPayload(payload) {

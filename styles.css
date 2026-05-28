@@ -1937,6 +1937,36 @@ h2 {
   font-weight: 750;
 }
 
+.site-notice {
+  position: fixed;
+  right: 18px;
+  bottom: 92px;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 14px 16px;
+  color: #ffffff;
+  background: var(--green);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  font-size: 0.94rem;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.site-notice[hidden] {
+  display: none;
+}
+
+.site-notice svg {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+}
+
 .pro-page {
   min-height: 100vh;
   background: #f4f7f2;
