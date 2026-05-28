@@ -16,6 +16,8 @@ const state = {
   quoteMode: "matching",
   quoteContext: "matching",
   reviews: [],
+  page: 1,
+  pageSize: 12,
 };
 
 const defaultApiBaseUrl = location.hostname.endsWith("github.io") || location.hostname === "localhost" || location.hostname === "127.0.0.1"
@@ -853,7 +855,14 @@ function syncSelectedWithFilter() {
 function renderResults() {
   const list = $("#resultsList");
   const selectedId = state.selected?.id;
-  $("#resultCount").textContent = `${state.filtered.length} contractors`;
+  const totalPages = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+  if (state.page > totalPages) state.page = totalPages;
+  const pageStart = (state.page - 1) * state.pageSize;
+  const pageRows = state.filtered.slice(pageStart, pageStart + state.pageSize);
+  const pageEnd = Math.min(pageStart + pageRows.length, state.filtered.length);
+  $("#resultCount").textContent = state.filtered.length
+    ? `${pageStart + 1}-${pageEnd} of ${state.filtered.length} contractors`
+    : "0 contractors";
   const localCount = state.region ? state.filtered.filter((row) => row.local_area === state.region).length : 0;
   $("#sortLabel").textContent = state.town
     ? `Near: ${state.town}`
@@ -861,7 +870,7 @@ function renderResults() {
       ? `${localCount} local shown first`
       : "Sort: Best Match";
 
-  list.innerHTML = state.filtered
+  list.innerHTML = pageRows
     .map((row) => `
       <button class="listing-card${row.id === selectedId ? " active" : ""}" type="button" data-listing-id="${row.id}">
         <span class="listing-thumb">
@@ -887,7 +896,41 @@ function renderResults() {
     `)
     .join("");
 
+  renderPagination(totalPages);
   initIcons();
+}
+
+function renderPagination(totalPages) {
+  const container = $("#directoryPagination");
+  if (!container) return;
+  if (totalPages <= 1) {
+    container.innerHTML = "";
+    return;
+  }
+
+  container.innerHTML = `
+    <button class="secondary-button compact" type="button" data-page-action="prev" ${state.page <= 1 ? "disabled" : ""}>
+      <i data-lucide="chevron-left"></i>
+      Previous
+    </button>
+    <span>Page ${state.page} of ${totalPages}</span>
+    <button class="secondary-button compact" type="button" data-page-action="next" ${state.page >= totalPages ? "disabled" : ""}>
+      Next
+      <i data-lucide="chevron-right"></i>
+    </button>
+  `;
+}
+
+function resetDirectoryPage() {
+  state.page = 1;
+}
+
+function changeDirectoryPage(direction) {
+  const totalPages = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+  state.page = Math.min(totalPages, Math.max(1, state.page + direction));
+  renderResults();
+  const target = window.innerWidth < 760 ? ".results-panel" : "#directory";
+  document.querySelector(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function selectListing(row, options = {}) {
@@ -1252,6 +1295,7 @@ function wireEvents() {
     $("#filterService").value = state.service;
     syncRegionControls();
     state.category = "";
+    resetDirectoryPage();
     applyFilters();
     setDirectoryView("list");
     scrollToResults();
@@ -1262,6 +1306,7 @@ function wireEvents() {
       state.region = event.target.value;
       state.town = "";
       state.category = "";
+      resetDirectoryPage();
       syncRegionControls();
       applyFilters();
     });
@@ -1269,21 +1314,25 @@ function wireEvents() {
 
   $("#filterService").addEventListener("input", (event) => {
     state.service = event.target.value;
+    resetDirectoryPage();
     applyFilters();
   });
 
   $("#filterArea").addEventListener("change", (event) => {
     state.town = event.target.value;
+    resetDirectoryPage();
     applyFilters();
   });
 
   $("#filterType").addEventListener("change", (event) => {
     state.confidence = event.target.value;
+    resetDirectoryPage();
     applyFilters();
   });
 
   $("#openToday").addEventListener("change", (event) => {
     state.availableToday = event.target.checked;
+    resetDirectoryPage();
     applyFilters();
   });
 
@@ -1304,6 +1353,7 @@ function wireEvents() {
     const urgencyButton = event.target.closest("[data-urgency]");
     const quoteModeButton = event.target.closest("[data-quote-mode]");
     const reviewButton = event.target.closest("[data-open-review]");
+    const pageButton = event.target.closest("[data-page-action]");
 
     if (popupProfileButton) {
       const row = state.rows.find((item) => item.id === popupProfileButton.dataset.popupProfile);
@@ -1315,6 +1365,7 @@ function wireEvents() {
       state.category = categoryButton.dataset.category === state.category ? "" : categoryButton.dataset.category;
       state.service = "";
       $("#filterService").value = "";
+      resetDirectoryPage();
       applyFilters();
       setDirectoryView("list");
       scrollToResults();
@@ -1332,6 +1383,10 @@ function wireEvents() {
     if (matchingQuoteButton) openQuoteDialog("matching");
 
     if (reviewButton) openReviewDialog();
+
+    if (pageButton) {
+      changeDirectoryPage(pageButton.dataset.pageAction === "next" ? 1 : -1);
+    }
 
     if (quoteModeButton) {
       setQuoteMode(quoteModeButton.dataset.quoteMode);
@@ -1355,6 +1410,7 @@ function wireEvents() {
       state.town = "";
       state.confidence = "";
       state.availableToday = false;
+      resetDirectoryPage();
       $("#serviceSearch").value = "";
       $("#filterService").value = "";
       $("#filterType").value = "";
