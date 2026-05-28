@@ -2544,9 +2544,11 @@ h2 {
   .mobile-tabbar a,
   .mobile-tabbar button {
     display: grid;
-    gap: 4px;
-    place-items: center;
+    align-content: start;
+    justify-items: center;
+    gap: 2px;
     min-height: 48px;
+    padding: 8px 0 6px;
     color: var(--muted);
     background: transparent;
     border: 0;
