@@ -48,7 +48,7 @@ async function loadPendingReviews() {
     $("#adminLogin").hidden = false;
     $("#adminWorkspace").hidden = true;
     $("#adminLoginError").hidden = false;
-    $("#adminLoginError").textContent = "Could not load reviews. Check the passcode and API setup.";
+    $("#adminLoginError").textContent = "Could not open admin. Check that ADMIN_REVIEW_SECRET is set in Vercel.";
   }
 }
 

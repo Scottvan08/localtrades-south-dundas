@@ -37,7 +37,7 @@ Verified May 28, 2026:
   - `publicSiteUrl: https://scottvan08.github.io/localtrades-south-dundas`
   - `publicApiUrl: https://localtrades-south-dundas.vercel.app`
   - `webhookValidation: false`
-- Reviews admin lives at `/admin/` and requires `ADMIN_REVIEW_SECRET`.
+- Reviews admin lives at `/admin/` and requires `ADMIN_REVIEW_SECRET`; MVP admin PIN is `2468` when Vercel is set to `ADMIN_REVIEW_SECRET=2468`.
 
 Do not commit Vercel, Supabase, Twilio, OpenAI, or personal phone secrets.
 

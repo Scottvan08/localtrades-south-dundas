@@ -35,6 +35,7 @@ GitHub Pages is the static public storefront. It serves the main BuiltLocal dire
 Vercel hosts the serverless backend and can also serve the static app. It receives quote requests at `/api/leads`, Twilio replies at `/api/twilio/inbound`, lead-card requests at `/api/leads/:token`, and the routing sweep at `/api/routing/sweep`.
 
 Reviews are submitted at `/api/reviews`, remain pending by default, and are approved or rejected from `/admin/` using the private admin passcode.
+For the current MVP, set `ADMIN_REVIEW_SECRET=2468` in Vercel Project Settings so the admin PIN matches the Pro demo PIN.
 
 Supabase is the live database for providers, leads, routing attempts, and SMS message history. Do not store real secrets or personal phone numbers in this repo.
 

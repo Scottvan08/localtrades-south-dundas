@@ -23,12 +23,12 @@
         <form class="lead-panel admin-card" id="adminLoginForm">
           <p class="section-kicker">Private Access</p>
           <h1>Review moderation</h1>
-          <p class="modal-note">Enter your admin passcode to approve or reject submitted reviews.</p>
+          <p class="modal-note">Enter your admin PIN to approve or reject submitted reviews.</p>
           <label>
-            Admin passcode
+            Admin PIN
             <input id="adminSecret" type="password" autocomplete="current-password" required />
           </label>
-          <div class="form-error" id="adminLoginError" hidden>Could not load reviews. Check the passcode.</div>
+          <div class="form-error" id="adminLoginError" hidden>Could not open admin. Check that ADMIN_REVIEW_SECRET is set in Vercel.</div>
           <button class="primary-button full" type="submit">
             <i data-lucide="log-in"></i>
             Open Reviews

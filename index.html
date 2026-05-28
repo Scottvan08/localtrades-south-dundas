@@ -457,7 +457,7 @@
           </label>
           <label>
             Service used
-            <input id="reviewServiceUsed" name="serviceUsed" type="text" placeholder="Roofing, plumbing, snow removal..." required />
+            <input id="reviewServiceUsed" name="serviceUsed" type="text" list="serviceTypes" placeholder="Deck repair, septic inspection, snow removal..." required />
           </label>
           <label>
             Your first name
@@ -468,7 +468,7 @@
             <input id="reviewTown" name="town" type="text" list="sdgTowns" required />
           </label>
           <label>
-            Private email
+            Email
             <input id="reviewEmail" name="email" type="email" required />
           </label>
           <label>
@@ -478,11 +478,11 @@
           <label>
             Rating
             <select id="reviewRating" name="rating" required>
-              <option value="5">5 stars</option>
-              <option value="4">4 stars</option>
-              <option value="3">3 stars</option>
-              <option value="2">2 stars</option>
-              <option value="1">1 star</option>
+              <option value="5">5 - Exceeded expectations</option>
+              <option value="4">4 - Good experience</option>
+              <option value="3">3 - Okay / mixed experience</option>
+              <option value="2">2 - Disappointed</option>
+              <option value="1">1 - Unsatisfied</option>
             </select>
           </label>
           <label class="wide-label no-margin">
@@ -520,6 +520,22 @@
     </datalist>
 
     <datalist id="providerNames"></datalist>
+
+    <datalist id="serviceTypes">
+      <option value="Plumbing"></option>
+      <option value="Electrical"></option>
+      <option value="Roofing"></option>
+      <option value="HVAC"></option>
+      <option value="Septic Services"></option>
+      <option value="Snow Removal"></option>
+      <option value="General Contractor"></option>
+      <option value="Deck repair"></option>
+      <option value="Fence repair"></option>
+      <option value="Home repair"></option>
+      <option value="Landscaping"></option>
+      <option value="Excavation"></option>
+      <option value="Rural property maintenance"></option>
+    </datalist>
 
     <button class="floating-back-search" type="button" data-back-results hidden>
       <i data-lucide="arrow-left"></i>
