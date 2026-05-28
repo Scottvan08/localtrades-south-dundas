@@ -321,6 +321,11 @@ const localAreaToCounty = Object.entries(localAreaConfig).reduce((acc, [county, 
 }, {});
 
 const localAreas = Object.values(localAreaConfig).flatMap((areas) => Object.keys(areas));
+const reviewTownOptions = [
+  ...localAreas,
+  ...Object.values(localAreaConfig).flatMap((areas) => Object.values(areas)).flat(),
+  "Cornwall",
+];
 
 const townCenters = {
   "SD&G": { lat: 45.0902, lng: -74.8359 },
@@ -1600,6 +1605,13 @@ async function submitReview(submitButton) {
     rating: Number($("#reviewRating").value || 0),
     reviewText: $("#reviewText").value.trim(),
   };
+  const validationError = validateReviewPayload(payload);
+  if (validationError) {
+    $("#reviewSuccess").hidden = true;
+    $("#reviewError").hidden = false;
+    $("#reviewError").textContent = validationError;
+    return;
+  }
 
   const originalButtonHtml = submitButton?.innerHTML;
   if (submitButton) {
@@ -1633,6 +1645,31 @@ async function submitReview(submitButton) {
       initIcons();
     }
   }
+}
+
+function validateReviewPayload(payload) {
+  if (!payload.providerId) return "Choose a business from the BuiltLocal directory list.";
+  if (!/^[a-z][a-z .'-]{1,39}$/i.test(payload.firstName)) return "Enter your first name only.";
+  if (!reviewTownOptions.some((town) => normalizeSearchText(town) === normalizeSearchText(payload.town))) {
+    return "Choose a town or area from the SD&G suggestions.";
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(payload.email)) return "Enter a valid email address.";
+  if (!/[a-z]/i.test(payload.serviceUsed) || payload.serviceUsed.length < 3 || payload.serviceUsed.length > 80) {
+    return "Enter the service that was used.";
+  }
+  if (payload.workDate && !isValidReviewWorkDate(payload.workDate)) {
+    return "Use a month and year like May 2026.";
+  }
+  if (!Number.isInteger(payload.rating) || payload.rating < 1 || payload.rating > 5) return "Choose a rating.";
+  if (payload.reviewText.length < 20) return "Add a little more detail to the review.";
+  return "";
+}
+
+function isValidReviewWorkDate(value) {
+  const match = String(value || "").trim().match(/^(january|february|march|april|may|june|july|august|september|october|november|december)\s+(20\d{2})$/i);
+  if (!match) return false;
+  const year = Number(match[2]);
+  return year >= 2000 && year <= new Date().getFullYear();
 }
 
 async function readResponseError(response) {

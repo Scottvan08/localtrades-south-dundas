@@ -1,5 +1,49 @@
 const { handleCorsPreflight, readBody, sendJson, supabase } = require("./_lib/sms-leads");
 
+const validReviewTowns = [
+  "South Dundas",
+  "North Dundas",
+  "South Stormont",
+  "North Stormont",
+  "South Glengarry",
+  "North Glengarry",
+  "Cornwall & Area",
+  "Morrisburg",
+  "Iroquois",
+  "Williamsburg",
+  "Brinston",
+  "Matilda",
+  "Riverside Heights",
+  "Dixons Corners",
+  "Winchester",
+  "Chesterville",
+  "Morewood",
+  "Mountain",
+  "South Mountain",
+  "Long Sault",
+  "Ingleside",
+  "Newington",
+  "Lunenburg",
+  "St. Andrews West",
+  "Finch",
+  "Berwick",
+  "Avonmore",
+  "Moose Creek",
+  "Crysler",
+  "Lancaster",
+  "South Lancaster",
+  "Summerstown",
+  "Bainsville",
+  "Green Valley",
+  "Williamstown",
+  "Alexandria",
+  "Maxville",
+  "Glen Robertson",
+  "Apple Hill",
+  "Dunvegan",
+  "Cornwall",
+];
+
 module.exports = async function reviewsHandler(req, res) {
   if (handleCorsPreflight(req, res)) return;
 
@@ -68,26 +112,42 @@ function normalizeReviewInput(input) {
   const serviceUsed = String(input.serviceUsed || "").trim();
   const reviewText = String(input.reviewText || "").trim();
   const rating = Number(input.rating || 0);
+  const providerId = String(input.providerId || "").trim();
+  const workDate = String(input.workDate || "").trim();
 
-  if (!providerName) throw new Error("Business reviewed is required");
-  if (!firstName) throw new Error("First name is required");
-  if (!town) throw new Error("Town is required");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Valid email is required");
-  if (!serviceUsed) throw new Error("Service used is required");
+  if (!providerId || !providerName) throw new Error("Choose a business from the BuiltLocal directory list");
+  if (!/^[a-z][a-z .'-]{1,39}$/i.test(firstName)) throw new Error("Enter your first name only");
+  if (!validReviewTowns.some((validTown) => normalizeReviewText(validTown) === normalizeReviewText(town))) {
+    throw new Error("Choose a town or area from the SD&G suggestions");
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(email)) throw new Error("Valid email is required");
+  if (!/[a-z]/i.test(serviceUsed) || serviceUsed.length < 3 || serviceUsed.length > 80) throw new Error("Service used is required");
+  if (workDate && !isValidWorkDate(workDate)) throw new Error("Use a month and year like May 2026");
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) throw new Error("Rating must be between 1 and 5");
-  if (reviewText.length < 12) throw new Error("Review must be at least 12 characters");
+  if (reviewText.length < 20) throw new Error("Review must be at least 20 characters");
 
   return {
-    providerId: String(input.providerId || "").trim(),
+    providerId,
     providerName,
     firstName,
     town,
     email,
     serviceUsed,
     rating,
-    workDate: String(input.workDate || "").trim(),
+    workDate,
     reviewText,
   };
+}
+
+function normalizeReviewText(value) {
+  return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().replace(/\s+/g, " ");
+}
+
+function isValidWorkDate(value) {
+  const match = String(value || "").trim().match(/^(january|february|march|april|may|june|july|august|september|october|november|december)\s+(20\d{2})$/i);
+  if (!match) return false;
+  const year = Number(match[2]);
+  return year >= 2000 && year <= new Date().getFullYear();
 }
 
 function publicPendingReview(review) {
