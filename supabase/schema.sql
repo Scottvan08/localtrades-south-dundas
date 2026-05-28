@@ -78,7 +78,26 @@ create table if not exists messages (
   created_at timestamptz not null default now()
 );
 
+create table if not exists reviews (
+  id uuid primary key default gen_random_uuid(),
+  provider_id text,
+  provider_name text not null,
+  reviewer_first_name text not null,
+  reviewer_town text not null,
+  reviewer_email text not null,
+  service_used text not null,
+  rating integer not null check (rating between 1 and 5),
+  work_date text,
+  review_text text not null,
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  approved_at timestamptz,
+  rejected_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
 create index if not exists providers_lead_match_idx on providers using gin (categories, towns_served);
 create index if not exists routing_attempts_token_idx on routing_attempts (token);
 create index if not exists routing_attempts_open_idx on routing_attempts (provider_id, status, created_at desc);
 create index if not exists leads_status_idx on leads (status, created_at desc);
+create index if not exists reviews_status_idx on reviews (status, created_at desc);
+create index if not exists reviews_provider_idx on reviews (provider_id, status, created_at desc);

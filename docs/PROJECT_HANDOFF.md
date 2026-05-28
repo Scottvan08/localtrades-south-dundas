@@ -37,6 +37,7 @@ Verified May 28, 2026:
   - `publicSiteUrl: https://scottvan08.github.io/localtrades-south-dundas`
   - `publicApiUrl: https://localtrades-south-dundas.vercel.app`
   - `webhookValidation: false`
+- Reviews admin lives at `/admin/` and requires `ADMIN_REVIEW_SECRET`.
 
 Do not commit Vercel, Supabase, Twilio, OpenAI, or personal phone secrets.
 
@@ -111,6 +112,8 @@ Files:
 - `api/routing/sweep.js`
 - `api/_lib/sms-leads.js`
 - `api/health.js`
+- `api/reviews.js`
+- `api/admin/reviews.js`
 
 Purpose:
 
@@ -121,6 +124,8 @@ Purpose:
 - Send Twilio SMS to one provider at a time.
 - Handle provider replies.
 - Notify homeowner by SMS after claim when the homeowner contact is a phone number.
+- Accept public review submissions, keep them pending, and expose only approved reviews publicly.
+- Let the private admin page approve or reject pending reviews.
 
 ### Supabase
 
@@ -135,6 +140,7 @@ Tables:
 - `leads`
 - `routing_attempts`
 - `messages`
+- `reviews`
 
 Use Supabase for live test and future production data. Do not use the static Pro dashboard as a source of truth for live leads yet.
 
@@ -198,6 +204,7 @@ Optional:
 - `OPENAI_MODEL`
 - `ROUTING_SWEEP_SECRET`
 - `TWILIO_VALIDATE_WEBHOOKS`
+- `ADMIN_REVIEW_SECRET`
 
 Current deployed setup has `TWILIO_VALIDATE_WEBHOOKS=false`. Turn it on before a real provider pilot once Twilio webhook URLs are stable.
 
@@ -242,7 +249,7 @@ Live API:
 - No real auth yet.
 - Pro dashboard state is localStorage only.
 - Public seed data and Pro profile edits are not synced.
-- No real review submission/moderation backend yet.
+- Review submission and lightweight admin moderation are available; reviews still require manual approval before public display.
 - No real photo upload/storage yet; use Supabase Storage signed URLs later.
 - Cron sweep is daily on Vercel Hobby, not frequent enough for production emergency rerouting.
 - `OPENAI_API_KEY` is not configured; Job Snapshots use fallback summaries.

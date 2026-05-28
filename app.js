@@ -15,9 +15,13 @@ const state = {
   categoriesExpanded: false,
   quoteMode: "matching",
   quoteContext: "matching",
+  reviews: [],
 };
 
-const apiBaseUrl = (window.BUILTLOCAL_API_BASE || localStorage.getItem("builtlocal_api_base") || "").replace(/\/$/, "");
+const defaultApiBaseUrl = location.hostname.endsWith("github.io") || location.hostname === "localhost" || location.hostname === "127.0.0.1"
+  ? "https://localtrades-south-dundas.vercel.app"
+  : "";
+const apiBaseUrl = (window.BUILTLOCAL_API_BASE || localStorage.getItem("builtlocal_api_base") || defaultApiBaseUrl).replace(/\/$/, "");
 
 const imagePoolsByCategory = {
   Plumbing: [
@@ -379,6 +383,8 @@ async function init() {
     state.rows = [];
   }
 
+  renderProviderDatalist();
+  await loadApprovedReviews();
   syncRegionControls();
   initMap();
   applyFilters();
@@ -868,7 +874,7 @@ function renderResults() {
             ${row.sourceVerified || row.claimed ? '<span class="verified-dot"><i data-lucide="check"></i></span>' : ""}
           </span>
           <span class="listing-meta">
-            <span><i data-lucide="message-square-heart"></i>No local reviews yet</span>
+            <span><i data-lucide="message-square-heart"></i>${escapeHtml(reviewSummaryFor(row).label)}</span>
             <span><i data-lucide="clock"></i>Replies in ${row.replies} min</span>
           </span>
           <span class="listing-category">${escapeHtml(row.displayCategory)}</span>
@@ -900,11 +906,13 @@ function selectListing(row, options = {}) {
 
 function updateProfile(row) {
   if (!row) return;
+  const reviews = reviewsForProvider(row);
+  const reviewSummary = reviewSummaryFor(row);
   $("#profileImage").src = row.image;
   $("#profileImage").alt = `${row.name} project image`;
   $("#profileTitle").textContent = row.name;
   $("#profileSubtitle").textContent = `${row.displayCategory} serving ${row.serviceText}`;
-  $("#profileReviews").textContent = "No local reviews yet";
+  $("#profileReviews").textContent = reviewSummary.label;
   $("#profileResponse").textContent = `${row.replies} min`;
   $("#profileDistance").textContent = row.distance;
   $("#profilePhone").textContent = row.phone || "Phone not yet verified";
@@ -922,6 +930,7 @@ function updateProfile(row) {
   $("#messageButton").href = row.phone ? `tel:${row.phone.replace(/[^0-9+]/g, "")}` : "#";
 
   $("#profileTags").innerHTML = row.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("");
+  renderProfileReviews(row, reviews);
 }
 
 function updateSummary() {
@@ -1004,7 +1013,7 @@ function mapPopupHtml(row) {
     <div class="map-popup">
       <strong>${escapeHtml(row.name)}</strong>
       <span>${escapeHtml(row.displayCategory)} &middot; ${escapeHtml(row.town || "South Dundas")}</span>
-      <span>No local reviews yet</span>
+      <span>${escapeHtml(reviewSummaryFor(row).label)}</span>
       <em>${escapeHtml(row.mapLabel)}</em>
       <span class="map-popup-actions">
         <button type="button" data-popup-profile="${escapeHtml(row.id)}">View Profile</button>
@@ -1103,6 +1112,125 @@ function syncRegionControls() {
   $("#directory-title").textContent = state.region ? `Find a service near ${state.region}` : "Find a service across SD&G";
 }
 
+function renderProviderDatalist() {
+  const datalist = $("#providerNames");
+  if (!datalist) return;
+  datalist.innerHTML = state.rows
+    .map((row) => `<option value="${escapeHtml(row.name)}"></option>`)
+    .join("");
+}
+
+async function loadApprovedReviews() {
+  if (!apiBaseUrl) {
+    state.reviews = [];
+    renderPublicReviews();
+    return;
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/reviews`);
+    if (!response.ok) throw new Error(await response.text());
+    const payload = await response.json();
+    state.reviews = Array.isArray(payload.reviews) ? payload.reviews : [];
+  } catch (error) {
+    console.warn("Could not load approved reviews", error);
+    state.reviews = [];
+  }
+  renderPublicReviews();
+}
+
+function reviewsForProvider(row) {
+  if (!row) return [];
+  const normalizedName = normalizeBusinessNameForReviews(row.name);
+  return state.reviews.filter((review) => {
+    return review.provider_id === row.id
+      || normalizeBusinessNameForReviews(review.provider_name) === normalizedName
+      || normalizeBusinessNameForReviews(review.providerName) === normalizedName;
+  });
+}
+
+function reviewSummaryFor(row) {
+  const reviews = reviewsForProvider(row);
+  if (!reviews.length) return { label: "No local reviews yet", count: 0, average: null };
+  const average = reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length;
+  return {
+    label: reviews.length >= 3
+      ? `${average.toFixed(1)} stars from ${reviews.length} local reviews`
+      : `${reviews.length} local ${reviews.length === 1 ? "review" : "reviews"}`,
+    count: reviews.length,
+    average,
+  };
+}
+
+function renderProfileReviews(row, reviews) {
+  const container = $("#profileReviewList");
+  if (!container) return;
+  if (!reviews.length) {
+    container.innerHTML = `
+      <div class="profile-review-empty">
+        <strong>No local reviews yet</strong>
+        <span>Be the first to share a real local experience with ${escapeHtml(row.name)}.</span>
+        <button class="secondary-button compact" type="button" data-open-review>
+          <i data-lucide="message-square-plus"></i>
+          Be the first to review
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = reviews.slice(0, 3).map(reviewCardHtml).join("");
+}
+
+function renderPublicReviews() {
+  const grid = $("#publicReviewGrid");
+  if (!grid) return;
+  if (!state.reviews.length) {
+    grid.innerHTML = `
+      <article class="review-card">
+        <div class="avatar"><i data-lucide="message-square-heart"></i></div>
+        <div>
+          <strong>No local reviews published yet</strong>
+          <p>Submitted reviews are checked before they appear here. Add the first original BuiltLocal review for an SD&G provider.</p>
+        </div>
+      </article>
+    `;
+    initIcons();
+    return;
+  }
+
+  grid.innerHTML = state.reviews.slice(0, 6).map(reviewCardHtml).join("");
+  initIcons();
+}
+
+function reviewCardHtml(review) {
+  const firstName = review.reviewer_first_name || review.firstName || "Local resident";
+  const town = review.reviewer_town || review.town || "SD&G";
+  const provider = review.provider_name || review.providerName || "Local provider";
+  const service = review.service_used || review.serviceUsed || "Service";
+  const text = review.review_text || review.reviewText || "";
+  return `
+    <article class="review-card published-review">
+      <div class="avatar">${escapeHtml(String(review.rating || ""))}</div>
+      <div>
+        <strong>${escapeHtml(provider)}</strong>
+        <span>${escapeHtml(service)} &middot; ${escapeHtml(firstName)} in ${escapeHtml(town)}</span>
+        <p>${escapeHtml(text)}</p>
+      </div>
+    </article>
+  `;
+}
+
+function normalizeBusinessNameForReviews(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\b(inc|ltd|limited|co|company|corp|corporation)\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function townsForRegion(region) {
   if (region) {
     const county = countyForLocalArea(region);
@@ -1175,6 +1303,7 @@ function wireEvents() {
     const closeDialogButton = event.target.closest("[data-close-dialog]");
     const urgencyButton = event.target.closest("[data-urgency]");
     const quoteModeButton = event.target.closest("[data-quote-mode]");
+    const reviewButton = event.target.closest("[data-open-review]");
 
     if (popupProfileButton) {
       const row = state.rows.find((item) => item.id === popupProfileButton.dataset.popupProfile);
@@ -1201,6 +1330,8 @@ function wireEvents() {
     if (directQuoteButton) openQuoteDialog("direct");
 
     if (matchingQuoteButton) openQuoteDialog("matching");
+
+    if (reviewButton) openReviewDialog();
 
     if (quoteModeButton) {
       setQuoteMode(quoteModeButton.dataset.quoteMode);
@@ -1264,6 +1395,11 @@ function wireEvents() {
   $("#quoteForm").addEventListener("submit", (event) => {
     event.preventDefault();
     saveQuoteLead(event.submitter);
+  });
+
+  $("#reviewForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    submitReview(event.submitter);
   });
 
   ["input", "change"].forEach((eventName) => {
@@ -1337,6 +1473,66 @@ function openQuoteDialog(context) {
   updateJobSnapshotPreview();
   $("#quoteDialog").showModal();
   initIcons();
+}
+
+function openReviewDialog() {
+  $("#reviewSuccess").hidden = true;
+  $("#reviewError").hidden = true;
+  const selected = state.selected;
+  $("#reviewProviderName").value = selected?.name || "";
+  $("#reviewServiceUsed").value = selected?.displayCategory || state.category || state.service || "";
+  $("#reviewTown").value = state.town || state.region || selected?.town || "";
+  $("#reviewDialog").showModal();
+  initIcons();
+}
+
+async function submitReview(submitButton) {
+  const providerName = $("#reviewProviderName").value.trim();
+  const row = state.rows.find((item) => normalizeBusinessNameForReviews(item.name) === normalizeBusinessNameForReviews(providerName));
+  const payload = {
+    providerId: row?.id || "",
+    providerName,
+    serviceUsed: $("#reviewServiceUsed").value.trim(),
+    firstName: $("#reviewFirstName").value.trim(),
+    town: $("#reviewTown").value.trim(),
+    email: $("#reviewEmail").value.trim(),
+    workDate: $("#reviewWorkDate").value.trim(),
+    rating: Number($("#reviewRating").value || 0),
+    reviewText: $("#reviewText").value.trim(),
+  };
+
+  const originalButtonHtml = submitButton?.innerHTML;
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i data-lucide="loader-circle"></i> Submitting...';
+    initIcons();
+  }
+
+  try {
+    if (!apiBaseUrl) throw new Error("Review API is not configured");
+    const response = await fetch(`${apiBaseUrl}/api/reviews`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || "Could not submit review");
+    }
+    $("#reviewSuccess").hidden = false;
+    $("#reviewError").hidden = true;
+    $("#reviewForm").reset();
+  } catch (error) {
+    $("#reviewSuccess").hidden = true;
+    $("#reviewError").hidden = false;
+    $("#reviewError").textContent = error.message || "Could not submit this review yet.";
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.innerHTML = originalButtonHtml;
+      initIcons();
+    }
+  }
 }
 
 async function saveQuoteLead(submitButton) {

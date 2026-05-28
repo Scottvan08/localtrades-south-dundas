@@ -145,7 +145,6 @@ function wireEvents() {
     const saveNoteButton = event.target.closest("[data-save-note]");
     const acceptLeadButton = event.target.closest("[data-accept-lead]");
     const backLeadsButton = event.target.closest("[data-back-leads]");
-    const addReviewButton = event.target.closest("[data-add-review]");
     const copyReviewButton = event.target.closest("[data-copy-review]");
     const closeLeadActionsButton = event.target.closest("[data-close-lead-actions]");
     const forwardContactButton = event.target.closest("[data-forward-contact]");
@@ -211,10 +210,6 @@ function wireEvents() {
     if (acceptLeadButton) acceptSelectedLead();
     if (saveLeadButton) saveSelectedLead();
     if (saveNoteButton) saveSelectedLeadNote();
-    if (addReviewButton) {
-      addMockReview();
-      renderAll();
-    }
     if (copyReviewButton) copyReviewInvite();
   });
 
@@ -792,7 +787,7 @@ function renderProfileForm() {
 }
 
 function renderReviews() {
-  $("#reviewInvite").value = `${location.origin}${basePath()}review/demo-co`;
+  $("#reviewInvite").value = `${location.origin}${basePath()}#reviews`;
   $("#reviewList").innerHTML = state.reviews.length ? state.reviews.map((review) => `
     <article class="lead-item review-row">
       <i data-lucide="message-square-heart"></i>
@@ -806,21 +801,9 @@ function renderReviews() {
     <div class="empty-state">
       <i data-lucide="message-square-heart"></i>
       <strong>No reviews yet</strong>
-      <span>Use Add Mock Review to test the moderation workflow.</span>
+      <span>Share the invite link or use Add Review to collect real moderated reviews.</span>
     </div>
   `;
-}
-
-function addMockReview() {
-  state.reviews.unshift({
-    id: `review-${Date.now()}`,
-    name: "Local homeowner",
-    rating: 5,
-    text: "Responsive, clear, and easy to work with.",
-    status: state.reviews.length % 2 === 0 ? "Pending" : "Approved",
-    createdAt: new Date().toISOString(),
-  });
-  writeObject(keys.reviews, state.reviews);
 }
 
 async function copyReviewInvite() {

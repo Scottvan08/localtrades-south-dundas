@@ -246,11 +246,16 @@
                 <i data-lucide="send"></i>
                 Request a Quote
               </button>
+              <button class="secondary-button" type="button" data-open-review>
+                <i data-lucide="message-square-plus"></i>
+                Add Review
+              </button>
               <button class="ghost-button" type="button" data-claim-link>
                 <i data-lucide="badge-check"></i>
                 Claim This Listing
               </button>
             </div>
+            <div class="profile-reviews-list" id="profileReviewList"></div>
           </div>
         </section>
 
@@ -258,36 +263,14 @@
           <div class="section-head">
             <div>
               <p class="section-kicker">Reviews</p>
-              <h2 id="reviews-title">Local reviews are coming soon</h2>
+              <h2 id="reviews-title">Local reviews from SD&amp;G residents</h2>
             </div>
             <button class="primary-button compact" type="button" data-open-review>
               <i data-lucide="message-square-plus"></i>
-              Add Review Soon
+              Add Review
             </button>
           </div>
-          <div class="review-grid">
-            <article class="review-card">
-              <div class="avatar">1</div>
-              <div>
-                <strong>Resident reviews</strong>
-                <p>Locals will be able to leave quick reviews for any listed provider with an email for private verification.</p>
-              </div>
-            </article>
-            <article class="review-card">
-              <div class="avatar">2</div>
-              <div>
-                <strong>Business-requested reviews</strong>
-                <p>Claimed providers can invite past customers to review them without copying Facebook recommendations.</p>
-              </div>
-            </article>
-            <article class="review-card">
-              <div class="avatar">3</div>
-              <div>
-                <strong>Manual moderation</strong>
-                <p>Every review will be checked before publishing so ratings only appear once trust has been earned.</p>
-              </div>
-            </article>
-          </div>
+          <div class="review-grid" id="publicReviewGrid"></div>
         </section>
 
       </main>
@@ -455,6 +438,70 @@
       </form>
     </dialog>
 
+    <dialog class="quote-dialog review-dialog" id="reviewDialog">
+      <form class="quote-form review-form" id="reviewForm">
+        <div class="modal-head">
+          <div>
+            <p class="section-kicker">Local Review</p>
+            <h2>Add a BuiltLocal review</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Close review form">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <p class="modal-note">Reviews are checked before publishing. Your email stays private and is only used for moderation.</p>
+        <div class="intake-grid">
+          <label>
+            Business reviewed
+            <input id="reviewProviderName" name="providerName" type="text" list="providerNames" required />
+          </label>
+          <label>
+            Service used
+            <input id="reviewServiceUsed" name="serviceUsed" type="text" placeholder="Roofing, plumbing, snow removal..." required />
+          </label>
+          <label>
+            Your first name
+            <input id="reviewFirstName" name="firstName" type="text" required />
+          </label>
+          <label>
+            Your town/community
+            <input id="reviewTown" name="town" type="text" list="sdgTowns" required />
+          </label>
+          <label>
+            Private email
+            <input id="reviewEmail" name="email" type="email" required />
+          </label>
+          <label>
+            Approximate month/year
+            <input id="reviewWorkDate" name="workDate" type="text" placeholder="May 2026" />
+          </label>
+          <label>
+            Rating
+            <select id="reviewRating" name="rating" required>
+              <option value="5">5 stars</option>
+              <option value="4">4 stars</option>
+              <option value="3">3 stars</option>
+              <option value="2">2 stars</option>
+              <option value="1">1 star</option>
+            </select>
+          </label>
+          <label class="wide-label no-margin">
+            Review
+            <textarea id="reviewText" name="reviewText" rows="4" placeholder="What work was done, and what should another local resident know?" required></textarea>
+          </label>
+        </div>
+        <div class="form-success" id="reviewSuccess" hidden>
+          <i data-lucide="check-circle"></i>
+          <span>Thanks. Your review will be checked before publishing.</span>
+        </div>
+        <div class="form-error" id="reviewError" hidden>Could not submit this review yet.</div>
+        <button class="primary-button full" type="submit">
+          <i data-lucide="send"></i>
+          Submit Review
+        </button>
+      </form>
+    </dialog>
+
     <datalist id="sdgTowns">
       <option value="Morrisburg"></option>
       <option value="Iroquois"></option>
@@ -471,6 +518,8 @@
       <option value="Alexandria"></option>
       <option value="Maxville"></option>
     </datalist>
+
+    <datalist id="providerNames"></datalist>
 
     <button class="floating-back-search" type="button" data-back-results hidden>
       <i data-lucide="arrow-left"></i>

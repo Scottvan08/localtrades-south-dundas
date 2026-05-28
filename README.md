@@ -15,6 +15,7 @@ Last verified from this workspace: May 28, 2026.
 - Public directory seed: 244 SD&G listings in `sdg-seed-listings.csv`.
 - Pro dashboard demo credentials: `demo@builtlocal.ca` / `2468`.
 - Demo business: `BuiltLocal Demo Co.`
+- Reviews admin: `/admin/`, protected by `ADMIN_REVIEW_SECRET` in Vercel.
 
 ## What Is In The Repo
 
@@ -23,6 +24,7 @@ Last verified from this workspace: May 28, 2026.
 - `pro/`: simulated Pro dashboard with localStorage state, lead triage, status handling, notes, voice notes where supported, and mobile-first lead actions.
 - `lead/`: no-login provider lead card opened from SMS links.
 - `api/`: Vercel serverless API for live SMS lead intake, Twilio inbound replies, lead cards, status callbacks, and routing sweep.
+- `admin/`: simple private review moderation page for pending public reviews.
 - `supabase/`: SQL schema and test provider insert template.
 - `docs/`: implementation notes and handoff context.
 
@@ -31,6 +33,8 @@ Last verified from this workspace: May 28, 2026.
 GitHub Pages is the static public storefront. It serves the main BuiltLocal directory and can call the Vercel API when `builtlocal_api_base` is set in browser localStorage.
 
 Vercel hosts the serverless backend and can also serve the static app. It receives quote requests at `/api/leads`, Twilio replies at `/api/twilio/inbound`, lead-card requests at `/api/leads/:token`, and the routing sweep at `/api/routing/sweep`.
+
+Reviews are submitted at `/api/reviews`, remain pending by default, and are approved or rejected from `/admin/` using the private admin passcode.
 
 Supabase is the live database for providers, leads, routing attempts, and SMS message history. Do not store real secrets or personal phone numbers in this repo.
 

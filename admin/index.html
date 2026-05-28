@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BuiltLocal Reviews Admin</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body class="admin-page">
+    <main class="admin-shell">
+      <header class="admin-head">
+        <a class="brand" href="../">
+          <span class="brand-mark"><i data-lucide="sprout"></i></span>
+          <span><strong>BuiltLocal</strong><small>Reviews Admin</small></span>
+        </a>
+        <button class="secondary-button compact" type="button" data-refresh-reviews>
+          <i data-lucide="refresh-cw"></i>
+          Refresh
+        </button>
+      </header>
+
+      <section class="admin-login" id="adminLogin">
+        <form class="lead-panel admin-card" id="adminLoginForm">
+          <p class="section-kicker">Private Access</p>
+          <h1>Review moderation</h1>
+          <p class="modal-note">Enter your admin passcode to approve or reject submitted reviews.</p>
+          <label>
+            Admin passcode
+            <input id="adminSecret" type="password" autocomplete="current-password" required />
+          </label>
+          <div class="form-error" id="adminLoginError" hidden>Could not load reviews. Check the passcode.</div>
+          <button class="primary-button full" type="submit">
+            <i data-lucide="log-in"></i>
+            Open Reviews
+          </button>
+        </form>
+      </section>
+
+      <section class="admin-workspace" id="adminWorkspace" hidden>
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Pending Reviews</p>
+            <h1>Approve what should go live</h1>
+          </div>
+          <span class="coverage-pill" id="pendingCount">0 pending</span>
+        </div>
+        <div class="form-success" id="adminSuccess" hidden>Review updated.</div>
+        <div class="form-error" id="adminError" hidden>Could not update this review.</div>
+        <div class="admin-review-list" id="adminReviewList"></div>
+      </section>
+    </main>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="./admin.js"></script>
+  </body>
+</html>

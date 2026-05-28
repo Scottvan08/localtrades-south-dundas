@@ -20,6 +20,7 @@ module.exports = async function healthHandler(req, res) {
       publicSiteUrl: process.env.PUBLIC_SITE_URL || "",
       publicApiUrl: process.env.PUBLIC_API_URL || "",
       webhookValidation: process.env.TWILIO_VALIDATE_WEBHOOKS === "true",
+      reviewAdmin: Boolean(process.env.ADMIN_REVIEW_SECRET),
     },
   });
 };
