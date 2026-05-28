@@ -21,10 +21,7 @@ function isAuthorized(req) {
 }
 
 async function listPendingReviews(res) {
-  const reviews = await supabase(
-    "reviews?status=eq.pending&select=*&order=created_at.asc&limit=100",
-    { method: "GET", headers: { prefer: "" } },
-  );
+  const reviews = await getPendingReviews();
   return sendJson(res, 200, { reviews: reviews.map(adminReview) });
 }
 
@@ -63,4 +60,20 @@ function adminReview(review) {
     status: review.status,
     createdAt: review.created_at,
   };
+}
+
+async function getPendingReviews() {
+  try {
+    return await supabase(
+      "reviews?status=eq.pending&select=*&order=created_at.asc&limit=100",
+      { method: "GET", headers: { prefer: "" } },
+    );
+  } catch (error) {
+    if (isMissingReviewsTable(error)) return [];
+    throw error;
+  }
+}
+
+function isMissingReviewsTable(error) {
+  return /reviews|PGRST|42P01|does not exist|schema cache/i.test(error.message || "");
 }

@@ -37,7 +37,7 @@ async function loadPendingReviews() {
     const response = await fetch(`${apiBaseUrl}/api/admin/reviews`, {
       headers: { authorization: `Bearer ${adminSecret}` },
     });
-    if (!response.ok) throw new Error(await response.text());
+    if (!response.ok) throw new Error(await readErrorMessage(response));
     const payload = await response.json();
     const reviews = Array.isArray(payload.reviews) ? payload.reviews : [];
     $("#adminLogin").hidden = true;
@@ -48,7 +48,7 @@ async function loadPendingReviews() {
     $("#adminLogin").hidden = false;
     $("#adminWorkspace").hidden = true;
     $("#adminLoginError").hidden = false;
-    $("#adminLoginError").textContent = "Could not open admin. Check that ADMIN_REVIEW_SECRET is set in Vercel.";
+    $("#adminLoginError").textContent = error.message || "Could not open admin. Check that ADMIN_REVIEW_SECRET is set in Vercel.";
   }
 }
 
@@ -100,7 +100,7 @@ async function moderateReview(id, action) {
       },
       body: JSON.stringify({ id, action }),
     });
-    if (!response.ok) throw new Error(await response.text());
+    if (!response.ok) throw new Error(await readErrorMessage(response));
     $("#adminSuccess").hidden = false;
     await loadPendingReviews();
   } catch (error) {
@@ -120,4 +120,14 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+async function readErrorMessage(response) {
+  const text = await response.text();
+  try {
+    const payload = JSON.parse(text);
+    return payload.error || text;
+  } catch (error) {
+    return text || "Could not open admin. Check that ADMIN_REVIEW_SECRET is set in Vercel.";
+  }
 }

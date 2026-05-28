@@ -20,9 +20,8 @@ async function listApprovedReviews(req, res) {
   if (providerId) filters.push(`provider_id=eq.${encodeURIComponent(providerId)}`);
   else if (providerName) filters.push(`provider_name=eq.${encodeURIComponent(providerName)}`);
 
-  const reviews = await supabase(
+  const reviews = await getReviews(
     `reviews?${filters.join("&")}&select=id,provider_id,provider_name,reviewer_first_name,reviewer_town,service_used,rating,work_date,review_text,approved_at,created_at&order=approved_at.desc.nullslast,created_at.desc&limit=100`,
-    { method: "GET", headers: { prefer: "" } },
   );
   return sendJson(res, 200, { reviews });
 }
@@ -84,4 +83,17 @@ function publicPendingReview(review) {
     status: review.status,
     createdAt: review.created_at,
   };
+}
+
+async function getReviews(path) {
+  try {
+    return await supabase(path, { method: "GET", headers: { prefer: "" } });
+  } catch (error) {
+    if (isMissingReviewsTable(error)) return [];
+    throw error;
+  }
+}
+
+function isMissingReviewsTable(error) {
+  return /reviews|PGRST|42P01|does not exist|schema cache/i.test(error.message || "");
 }
