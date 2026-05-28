@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BuiltLocal Pro</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body class="pro-page">
+    <main class="pro-app" id="proApp">
+      <section class="pro-login" id="loginView" aria-labelledby="login-title">
+        <a class="brand pro-login-brand" href="../" aria-label="Back to BuiltLocal">
+          <span class="brand-mark"><i data-lucide="sprout"></i></span>
+          <span><strong>BuiltLocal</strong><small>Pro</small></span>
+        </a>
+        <form class="pro-login-card" id="loginForm">
+          <p class="section-kicker">Business access</p>
+          <h1 id="login-title">Sign in to manage your BuiltLocal profile.</h1>
+          <p>Demo credentials let you test the business tools without creating a real account.</p>
+          <div class="demo-credentials">
+            <span><strong>Email</strong> demo@builtlocal.ca</span>
+            <span><strong>PIN</strong> 2468</span>
+          </div>
+          <label>
+            Email
+            <input id="loginEmail" type="email" autocomplete="username" value="demo@builtlocal.ca" />
+          </label>
+          <label>
+            PIN
+            <input id="loginPin" type="password" inputmode="numeric" autocomplete="current-password" value="2468" />
+          </label>
+          <div class="form-error" id="loginError" hidden>Use demo@builtlocal.ca and PIN 2468.</div>
+          <button class="primary-button full" type="submit">
+            <i data-lucide="log-in"></i>
+            Sign In
+          </button>
+          <a class="secondary-button full" href="../">
+            <i data-lucide="arrow-left"></i>
+            Back to Public Directory
+          </a>
+        </form>
+      </section>
+
+      <section class="pro-workspace" id="dashboardView" hidden>
+        <aside class="pro-sidebar">
+          <div class="pro-sidebar-head">
+            <a class="brand inverse" href="../">
+              <span class="brand-mark"><i data-lucide="sprout"></i></span>
+              <span><strong>BuiltLocal</strong><small>Pro</small></span>
+            </a>
+            <button class="icon-button pro-menu-toggle" type="button" data-pro-menu-toggle aria-label="Open Pro menu" aria-expanded="false">
+              <i data-lucide="menu"></i>
+            </button>
+          </div>
+          <div class="pro-menu" id="proMenu">
+            <button class="side-link active" type="button" data-pro-tab="leads"><i data-lucide="inbox"></i>Leads</button>
+            <button class="side-link" type="button" data-pro-tab="analytics"><i data-lucide="bar-chart-3"></i>Analytics</button>
+            <button class="side-link" type="button" data-pro-tab="profile"><i data-lucide="user-round-cog"></i>Profile</button>
+            <button class="side-link" type="button" data-pro-tab="reviews"><i data-lucide="star"></i>Reviews</button>
+            <button class="side-link" type="button" data-pro-tab="areas"><i data-lucide="map"></i>Service Areas</button>
+            <button class="side-link" type="button" data-pro-tab="settings"><i data-lucide="settings"></i>Settings</button>
+            <a class="side-link" href="../?v=pro#directory"><i data-lucide="external-link"></i>Public Directory</a>
+            <button class="side-link signout-link" type="button" data-sign-out><i data-lucide="log-out"></i>Sign Out</button>
+          </div>
+        </aside>
+
+        <div class="dashboard-main pro-main">
+          <header class="dashboard-head pro-header">
+            <div>
+              <p class="section-kicker">Contractor dashboard</p>
+              <h1 id="dashboardTitle">Welcome back, BuiltLocal Demo Co.</h1>
+            </div>
+            <a class="secondary-button pro-public-link" href="../?v=pro#directory">
+              <i data-lucide="external-link"></i>
+              View Public Directory
+            </a>
+          </header>
+
+          <section class="stats-grid pro-summary" aria-label="Business summary">
+            <div><strong id="metricUnreviewedLeads">0</strong><span>Unreviewed leads</span></div>
+            <div><strong id="metricNewReviews">0</strong><span>New reviews</span></div>
+          </section>
+
+          <section class="pro-panel active" data-pro-panel="leads">
+            <div class="pro-two-column">
+              <article class="lead-panel pro-lead-queue">
+                <div class="panel-head">
+                  <strong>Lead queue</strong>
+                  <button class="primary-button compact" type="button" data-create-lead>
+                    <i data-lucide="plus"></i>
+                    Add Lead
+                  </button>
+                </div>
+                <div class="lead-tools" aria-label="Lead list controls">
+                  <div class="lead-filter-chips" id="leadFilterChips"></div>
+                  <label class="lead-sort-control">
+                    <span>Sort</span>
+                    <select id="leadSort">
+                      <option value="attention">Needs attention</option>
+                      <option value="newest">Newest</option>
+                      <option value="urgency">Urgency</option>
+                      <option value="status">Status</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="lead-list pro-lead-list" id="leadList"></div>
+              </article>
+              <article class="strength-panel lead-detail" id="leadDetail">
+                <i data-lucide="file-text"></i>
+                <strong>Select a lead</strong>
+                <span>Lead details, status, and internal notes appear here.</span>
+              </article>
+            </div>
+          </section>
+
+          <section class="pro-panel" data-pro-panel="analytics">
+            <div class="pro-two-column">
+              <article class="lead-panel">
+                <div class="panel-head"><strong>Lead analytics</strong></div>
+                <div class="stats-grid compact-stats">
+                  <div><strong id="analyticsTotal">0</strong><span>Total leads</span></div>
+                  <div><strong id="analyticsHandled">0</strong><span>Handled leads</span></div>
+                  <div><strong id="analyticsContacted">0</strong><span>Claimed/contacted</span></div>
+                  <div><strong id="analyticsRejected">0</strong><span>Rejected</span></div>
+                </div>
+              </article>
+              <article class="strength-panel">
+                <strong>Demand snapshot</strong>
+                <span id="analyticsSummary">Lead activity will appear as residents request quotes.</span>
+              </article>
+            </div>
+          </section>
+
+          <section class="pro-panel" data-pro-panel="profile">
+            <form class="lead-panel" id="profileForm">
+              <div class="panel-head"><strong>Public profile details</strong></div>
+              <p class="form-note">Saved for this demo dashboard on this device.</p>
+              <div class="profile-editor-grid">
+                <label>Business name<input id="profileName" type="text" /></label>
+                <label>Primary service<input id="profileService" type="text" /></label>
+                <label>Public phone<input id="profilePhoneInput" type="text" /></label>
+                <label>Contact email<input id="profileEmail" type="email" /></label>
+                <label>Website<input id="profileWebsite" type="url" /></label>
+                <label>Photo URL<input id="profilePhoto" type="url" /></label>
+              </div>
+              <label class="wide-label">Description<textarea id="profileDescription" rows="4"></textarea></label>
+              <label class="wide-label">Service tags<input id="profileTagsInput" type="text" /></label>
+              <button class="primary-button compact" type="submit">
+                <i data-lucide="save"></i>
+                Save Profile
+              </button>
+              <span class="inline-success" id="profileSaved" hidden>Profile saved.</span>
+            </form>
+          </section>
+
+          <section class="pro-panel" data-pro-panel="reviews">
+            <div class="pro-two-column">
+              <article class="lead-panel">
+                <div class="panel-head">
+                  <strong>Reviews</strong>
+                  <button class="primary-button compact" type="button" data-add-review>
+                    <i data-lucide="plus"></i>
+                    Add Mock Review
+                  </button>
+                </div>
+                <div class="review-invite">
+                  <input id="reviewInvite" type="text" readonly />
+                  <button class="secondary-button" type="button" data-copy-review>
+                    <i data-lucide="copy"></i>
+                    Copy
+                  </button>
+                </div>
+                <span class="inline-success" id="reviewCopied" hidden>Invite link copied.</span>
+                <div class="lead-list" id="reviewList"></div>
+              </article>
+              <article class="strength-panel">
+                <strong>Moderated trust</strong>
+                <span>Pending reviews stay private until approved. Approved reviews are ready for the future public trust layer.</span>
+              </article>
+            </div>
+          </section>
+
+          <section class="pro-panel" data-pro-panel="areas">
+            <form class="lead-panel" id="areasForm">
+              <div class="panel-head"><strong>Service areas</strong></div>
+              <div class="profile-editor-grid">
+                <label>Primary town<input id="areaPrimaryTown" type="text" /></label>
+                <label>Service radius<input id="areaRadius" type="number" min="0" step="5" /></label>
+                <label class="toggle-line form-toggle">
+                  <input id="areaAllSdg" type="checkbox" />
+                  <span>Serves all SD&amp;G</span>
+                </label>
+              </div>
+              <label class="wide-label">Towns served<input id="areaTowns" type="text" /></label>
+              <button class="primary-button compact" type="submit">
+                <i data-lucide="save"></i>
+                Save Areas
+              </button>
+              <span class="inline-success" id="areasSaved" hidden>Service areas saved.</span>
+            </form>
+          </section>
+
+          <section class="pro-panel" data-pro-panel="settings">
+            <form class="lead-panel" id="settingsForm">
+              <div class="panel-head"><strong>Settings and account</strong></div>
+              <div class="profile-editor-grid">
+                <label>Plan<input id="settingsPlan" type="text" readonly /></label>
+                <label>Account email<input id="settingsEmail" type="email" /></label>
+                <label class="toggle-line form-toggle">
+                  <input id="settingsLeadAlerts" type="checkbox" />
+                  <span>Lead alerts</span>
+                </label>
+                <label class="toggle-line form-toggle">
+                  <input id="settingsReviewAlerts" type="checkbox" />
+                  <span>Review alerts</span>
+                </label>
+              </div>
+              <button class="primary-button compact" type="submit">
+                <i data-lucide="save"></i>
+                Save Settings
+              </button>
+              <span class="inline-success" id="settingsSaved" hidden>Settings saved.</span>
+              <p class="demo-disclosure">Demo mode: saved on this device only. Real SMS lead routing requires the API environment variables and provider opt-in.</p>
+            </form>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <dialog class="quote-dialog lead-action-dialog" id="leadActionDialog" aria-labelledby="lead-action-title">
+      <div class="quote-form lead-action-sheet">
+        <div class="modal-head">
+          <div>
+            <p class="section-kicker">Lead accepted</p>
+            <h2 id="lead-action-title">Contact the homeowner now.</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-lead-actions aria-label="Close contact options">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <p class="modal-note" id="leadActionSummary">Choose the quickest next step for this lead.</p>
+        <div class="lead-action-list" id="leadActionList"></div>
+        <span class="inline-success no-margin" id="contactCardCopied" hidden>Contact card copied.</span>
+      </div>
+    </dialog>
+
+    <dialog class="quote-dialog lead-action-dialog" id="rejectLeadDialog" aria-labelledby="reject-lead-title">
+      <div class="quote-form lead-action-sheet">
+        <div class="modal-head">
+          <div>
+            <p class="section-kicker">Reject lead</p>
+            <h2 id="reject-lead-title">Send this back to matching?</h2>
+          </div>
+          <button class="icon-button" type="button" data-cancel-reject aria-label="Cancel reject">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <p class="modal-note">In the live routing flow, BuiltLocal would offer this request to another matched provider.</p>
+        <div class="modal-actions">
+          <button class="secondary-button" type="button" data-cancel-reject>Keep Lead</button>
+          <button class="primary-button danger-button" type="button" data-confirm-reject>
+            <i data-lucide="x-circle"></i>
+            Reject Lead
+          </button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="quote-dialog lead-action-dialog status-dialog" id="leadStatusDialog" aria-labelledby="lead-status-title">
+      <div class="quote-form lead-action-sheet">
+        <div class="modal-head">
+          <div>
+            <p class="section-kicker">Lead status</p>
+            <h2 id="lead-status-title">Update lead status</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-status-menu aria-label="Close status menu">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div class="status-choice-list" id="statusChoiceList"></div>
+      </div>
+    </dialog>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="./pro.js"></script>
+  </body>
+</html>

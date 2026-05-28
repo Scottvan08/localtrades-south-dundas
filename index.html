@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BuiltLocal SD&G</title>
+    <link rel="preconnect" href="https://images.unsplash.com" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#home" aria-label="BuiltLocal home">
+          <span class="brand-mark">
+            <i data-lucide="sprout"></i>
+          </span>
+          <span>
+            <strong>BuiltLocal</strong>
+            <small>SD&amp;G Rural Area</small>
+          </span>
+        </a>
+
+        <nav class="desktop-nav" aria-label="Primary navigation">
+          <a href="#directory">Find Contractors</a>
+          <a href="#reviews">Reviews</a>
+          <a class="ghost-button" href="./pro/">
+            <i data-lucide="layout-dashboard"></i>
+            Pro Dashboard
+          </a>
+        </nav>
+
+        <button class="primary-button compact" type="button" data-claim-link>
+          <i data-lucide="badge-check"></i>
+          Claim Your Business
+        </button>
+      </header>
+
+      <main>
+        <section class="hero" id="home" aria-labelledby="hero-title">
+          <div class="hero-bg" role="img" aria-label="SD&G rural home and contractor truck"></div>
+          <div class="hero-content">
+            <div class="eyebrow">
+              <i data-lucide="map-pin"></i>
+              Stormont, Dundas and Glengarry
+            </div>
+            <h1 id="hero-title">Find local <span class="mobile-line">contractors who</span> <span class="mobile-line">actually respond.</span></h1>
+            <p>Trusted trades, rural service areas, <span class="mobile-line">and local recommendations.</span></p>
+
+            <form class="search-panel" id="heroSearch">
+              <label class="sr-only" for="serviceSearch">Service</label>
+              <div class="input-wrap">
+                <i data-lucide="search"></i>
+                <input id="serviceSearch" name="service" type="search" placeholder="What do you need help with?" autocomplete="off" />
+              </div>
+              <label class="sr-only" for="regionSearch">Location</label>
+              <select id="regionSearch" name="region" data-region-select>
+                <option value="">All SD&amp;G</option>
+                <option value="South Dundas">South Dundas</option>
+                <option value="North Dundas">North Dundas</option>
+                <option value="South Stormont">South Stormont</option>
+                <option value="North Stormont">North Stormont</option>
+                <option value="South Glengarry">South Glengarry</option>
+                <option value="North Glengarry">North Glengarry</option>
+                <option value="Cornwall &amp; Area">Cornwall &amp; Area</option>
+              </select>
+              <button class="primary-button" type="submit">
+                <i data-lucide="search"></i>
+                Search
+              </button>
+            </form>
+
+            <div class="trust-row" aria-label="Directory highlights">
+              <span><i data-lucide="badge-check"></i> Verified profiles</span>
+              <span><i data-lucide="timer"></i> Fast responders</span>
+              <span><i data-lucide="map"></i> Rural service areas</span>
+              <span><i data-lucide="message-square-heart"></i> Local reviews</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="service-strip" aria-labelledby="popular-title">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">Popular across SD&amp;G</p>
+              <h2 id="popular-title">Start with the job, not the directory.</h2>
+            </div>
+            <div class="section-actions">
+              <span class="coverage-pill" id="categoryCoverage">Loading profiles</span>
+              <button class="text-button" type="button" data-toggle-categories aria-expanded="false">See all categories</button>
+            </div>
+          </div>
+          <div class="category-grid" id="categoryGrid"></div>
+        </section>
+
+        <section class="directory" id="directory" aria-labelledby="directory-title">
+          <div class="directory-top">
+            <div>
+              <p class="section-kicker">Directory</p>
+              <h2 id="directory-title">Find a service across SD&amp;G</h2>
+            </div>
+            <div class="directory-actions">
+              <button class="segmented" type="button" data-view="map">
+                <i data-lucide="map"></i>
+                Map
+              </button>
+              <button class="segmented active" type="button" data-view="list">
+                <i data-lucide="list"></i>
+                List
+              </button>
+              <button class="icon-button filter-toggle" type="button" aria-label="Filters" aria-pressed="false" data-filter-button>
+                <i data-lucide="sliders-horizontal"></i>
+                <span>Filters</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="workspace">
+            <aside class="filters" id="filtersPanel">
+              <label>
+                Service
+                <div class="input-wrap small">
+                  <i data-lucide="search"></i>
+                  <input id="filterService" type="search" placeholder="Plumber, snow removal..." />
+                </div>
+              </label>
+              <label>
+                Location
+                <select id="filterRegion" data-region-select>
+                  <option value="">All SD&amp;G</option>
+                  <option value="South Dundas">South Dundas</option>
+                  <option value="North Dundas">North Dundas</option>
+                  <option value="South Stormont">South Stormont</option>
+                  <option value="North Stormont">North Stormont</option>
+                  <option value="South Glengarry">South Glengarry</option>
+                  <option value="North Glengarry">North Glengarry</option>
+                  <option value="Cornwall &amp; Area">Cornwall &amp; Area</option>
+                </select>
+              </label>
+              <label>
+                Near
+                <select id="filterArea">
+                  <option value="">Anywhere in SD&amp;G</option>
+                </select>
+              </label>
+              <label>
+                Profile type
+                <select id="filterType">
+                  <option value="">All profiles</option>
+                  <option value="High">Verified source</option>
+                  <option value="Medium">Needs verification</option>
+                </select>
+              </label>
+              <div class="toggle-line">
+                <input id="openToday" type="checkbox" />
+                <label for="openToday">Available today</label>
+              </div>
+              <button class="primary-button full" type="button" data-apply-filters>
+                <i data-lucide="check"></i>
+                Apply
+              </button>
+            </aside>
+
+            <div class="results-panel">
+              <div class="results-meta">
+                <strong id="resultCount">0 contractors</strong>
+                <span id="sortLabel">Sort: Best Match</span>
+              </div>
+              <div class="results-list" id="resultsList"></div>
+            </div>
+
+            <aside class="map-panel" aria-label="Service area map">
+              <div class="map-card">
+                <div class="leaflet-map" id="directoryMap" aria-label="Interactive service area map"></div>
+                <div class="map-summary">
+                  <strong id="mapSummary">48 service profiles nearby</strong>
+                  <span id="mapFootnote">Approximate pins until listings are claimed. Circle shows selected service radius.</span>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="profile-section" id="profile" aria-labelledby="profileTitle">
+          <div class="profile-media">
+            <img id="profileImage" alt="" />
+            <button class="save-button" type="button" aria-label="Save profile">
+              <i data-lucide="heart"></i>
+            </button>
+          </div>
+          <div class="profile-detail">
+            <div class="profile-title-line">
+              <div>
+                <h2 id="profileTitle">Select a contractor</h2>
+                <p id="profileSubtitle">Profile details will appear here.</p>
+              </div>
+              <span class="verified-pill" id="verifiedPill">
+                <i data-lucide="badge-check"></i>
+                Verified
+              </span>
+            </div>
+            <div class="metric-row">
+              <span><i data-lucide="message-square-heart"></i><strong id="profileReviews">No local reviews yet</strong></span>
+              <span><i data-lucide="clock"></i><strong id="profileResponse">22 min</strong> reply time</span>
+              <span><i data-lucide="map-pin"></i><strong id="profileDistance">0-30 km</strong> service area</span>
+            </div>
+            <div class="tag-row" id="profileTags"></div>
+            <div class="profile-facts">
+              <div>
+                <i data-lucide="phone"></i>
+                <span id="profilePhone">Public phone</span>
+              </div>
+              <div>
+                <i data-lucide="map"></i>
+                <span id="profileAreas">Serves South Dundas</span>
+              </div>
+              <div>
+                <i data-lucide="shield-check"></i>
+                <span id="profileClaim">Unclaimed public listing</span>
+              </div>
+              <div>
+                <i data-lucide="briefcase-business"></i>
+                <span id="profileJobs">Completed local jobs</span>
+              </div>
+            </div>
+            <div class="profile-actions">
+              <button class="secondary-button" type="button" data-back-results>
+                <i data-lucide="arrow-left"></i>
+                Back to results
+              </button>
+              <a class="secondary-button" id="messageButton" href="#">
+                <i data-lucide="phone"></i>
+                Call
+              </a>
+              <button class="primary-button" type="button" data-open-quote>
+                <i data-lucide="send"></i>
+                Request a Quote
+              </button>
+              <button class="ghost-button" type="button" data-claim-link>
+                <i data-lucide="badge-check"></i>
+                Claim This Listing
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="reviews" id="reviews" aria-labelledby="reviews-title">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">Reviews</p>
+              <h2 id="reviews-title">Local reviews are coming soon</h2>
+            </div>
+            <button class="primary-button compact" type="button" data-open-review>
+              <i data-lucide="message-square-plus"></i>
+              Add Review Soon
+            </button>
+          </div>
+          <div class="review-grid">
+            <article class="review-card">
+              <div class="avatar">1</div>
+              <div>
+                <strong>Resident reviews</strong>
+                <p>Locals will be able to leave quick reviews for any listed provider with an email for private verification.</p>
+              </div>
+            </article>
+            <article class="review-card">
+              <div class="avatar">2</div>
+              <div>
+                <strong>Business-requested reviews</strong>
+                <p>Claimed providers can invite past customers to review them without copying Facebook recommendations.</p>
+              </div>
+            </article>
+            <article class="review-card">
+              <div class="avatar">3</div>
+              <div>
+                <strong>Manual moderation</strong>
+                <p>Every review will be checked before publishing so ratings only appear once trust has been earned.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+      </main>
+
+      <nav class="mobile-tabbar" aria-label="Mobile navigation">
+        <a href="#home" class="active"><i data-lucide="home"></i><span>Home</span></a>
+        <a href="#directory"><i data-lucide="search"></i><span>Search</span></a>
+        <a href="#profile"><i data-lucide="map"></i><span>Map</span></a>
+        <a href="./pro/"><i data-lucide="layout-dashboard"></i><span>Pro</span></a>
+        <button type="button" data-open-quote><i data-lucide="clipboard-list"></i><span>Quote</span></button>
+        <button type="button" data-claim-link><i data-lucide="user"></i><span>Claim</span></button>
+      </nav>
+    </div>
+
+    <dialog class="quote-dialog lead-intake-dialog" id="quoteDialog">
+      <form class="quote-form lead-intake-form" id="quoteForm">
+        <div class="modal-head">
+          <div>
+            <p class="section-kicker">Request Help</p>
+            <h2 id="quoteTitle">Choose how you want this request handled.</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Close quote form">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <p class="modal-note" id="quoteModeNote">Send a direct quote request to one company or let BuiltLocal match it with a nearby provider by SMS.</p>
+
+        <div class="quote-choice-grid" role="group" aria-label="Quote routing choice">
+          <button class="quote-choice active" type="button" data-quote-mode="direct">
+            <i data-lucide="send"></i>
+            <span>
+              <strong>Request this company</strong>
+              <em id="directChoiceText">Send this as a direct company lead.</em>
+            </span>
+          </button>
+          <button class="quote-choice" type="button" data-quote-mode="matching">
+            <i data-lucide="radar"></i>
+            <span>
+              <strong>Match me locally</strong>
+              <em>SMS routing can offer the request to nearby providers one at a time.</em>
+            </span>
+          </button>
+        </div>
+
+        <div class="intake-grid">
+          <section class="intake-step">
+            <span>1</span>
+            <div>
+              <strong>Job</strong>
+              <p>What needs to happen?</p>
+            </div>
+          </section>
+          <label>
+            Service needed
+            <select id="quoteService" name="service">
+              <option>Plumbing</option>
+              <option>Electrical</option>
+              <option>Roofing</option>
+              <option>Septic Services</option>
+              <option>Snow Removal</option>
+              <option>General Contractor</option>
+              <option>Landscaping</option>
+              <option>HVAC</option>
+              <option>Excavation</option>
+              <option>Home Repair</option>
+              <option>Not sure</option>
+            </select>
+          </label>
+          <label>
+            Town or nearest community
+            <input id="quoteTown" name="town" type="text" list="sdgTowns" placeholder="Morrisburg, Ingleside, Alexandria..." />
+          </label>
+          <label class="wide-label no-margin">
+            Short project details
+            <textarea id="quoteDetails" name="details" rows="4" placeholder="Leaking pipe, roof repair, driveway clearing, septic issue..."></textarea>
+          </label>
+
+          <section class="intake-step">
+            <span>2</span>
+            <div>
+              <strong>Fit</strong>
+              <p>Help the provider decide quickly.</p>
+            </div>
+          </section>
+          <div class="choice-row">
+            <button class="chip" type="button" data-urgency="Emergency">Emergency</button>
+            <button class="chip active" type="button" data-urgency="ASAP">ASAP</button>
+            <button class="chip" type="button" data-urgency="Within a week">This week</button>
+            <button class="chip" type="button" data-urgency="Flexible">Flexible</button>
+          </div>
+          <label>
+            Property type
+            <select id="quoteProperty" name="propertyType">
+              <option>Detached home</option>
+              <option>Rural home</option>
+              <option>Farm</option>
+              <option>Cottage</option>
+              <option>Commercial</option>
+              <option>Not sure</option>
+            </select>
+          </label>
+          <label>
+            Budget range <span class="optional-label">(optional)</span>
+            <select id="quoteBudget" name="budget">
+              <option>Not sure</option>
+              <option>Under $500</option>
+              <option>$500-$2,000</option>
+              <option>$2,000-$10,000</option>
+              <option>$10,000+</option>
+            </select>
+          </label>
+          <label>
+            Photos
+            <input id="quotePhotos" name="photos" type="file" accept="image/*" multiple />
+          </label>
+
+          <section class="intake-step">
+            <span>3</span>
+            <div>
+              <strong>Contact</strong>
+              <p>Released only after a provider claims.</p>
+            </div>
+          </section>
+          <label>
+            Your name
+            <input id="quoteName" name="name" type="text" placeholder="First name is fine" />
+          </label>
+          <label>
+            Phone or email
+            <input id="quoteContact" name="contact" type="text" placeholder="Phone or email" />
+          </label>
+          <label>
+            Preferred reply
+            <select id="quoteContactMethod" name="preferredContact">
+              <option>Text</option>
+              <option>Call</option>
+              <option>Email</option>
+            </select>
+          </label>
+          <label>
+            Good times to reach you
+            <input id="quoteAvailability" name="availability" type="text" placeholder="Weekdays after 4, Saturday morning..." />
+          </label>
+        </div>
+
+        <div class="job-snapshot-preview" id="jobSnapshotPreview" aria-live="polite">
+          <i data-lucide="message-square-text"></i>
+          <div>
+            <strong>Job Snapshot</strong>
+            <span id="snapshotText">Service | town | timing | photos | intent score</span>
+          </div>
+        </div>
+
+        <div class="form-success" id="quoteSuccess" hidden>
+          <i data-lucide="check-circle"></i>
+          <span id="quoteSuccessText">Request received.</span>
+        </div>
+        <div class="form-error" id="quoteError" hidden>
+          Could not reach the SMS lead API, so this request was saved locally for review.
+        </div>
+        <button class="primary-button full" type="submit">
+          <i data-lucide="send"></i>
+          <span id="quoteSubmitText">Send Request</span>
+        </button>
+      </form>
+    </dialog>
+
+    <datalist id="sdgTowns">
+      <option value="Morrisburg"></option>
+      <option value="Iroquois"></option>
+      <option value="Williamsburg"></option>
+      <option value="Winchester"></option>
+      <option value="Chesterville"></option>
+      <option value="Long Sault"></option>
+      <option value="Ingleside"></option>
+      <option value="Finch"></option>
+      <option value="Berwick"></option>
+      <option value="Avonmore"></option>
+      <option value="Cornwall"></option>
+      <option value="Lancaster"></option>
+      <option value="Alexandria"></option>
+      <option value="Maxville"></option>
+    </datalist>
+
+    <button class="floating-back-search" type="button" data-back-results hidden>
+      <i data-lucide="arrow-left"></i>
+      Back to search
+    </button>
+
+    <dialog class="quote-dialog" id="claimDialog">
+      <form class="quote-form" id="claimForm">
+        <div class="modal-head">
+          <div>
+            <p class="section-kicker">Claim Your Business</p>
+            <h2>Keep your profile accurate</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Close claim form">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <label>
+          Business name
+          <input type="text" placeholder="Business or service name" />
+        </label>
+        <label>
+          Contact email
+          <input type="email" placeholder="you@example.com" />
+        </label>
+        <label>
+          Proof method
+          <select>
+            <option>Call or text the public phone number</option>
+            <option>Email from business domain</option>
+            <option>Manual approval</option>
+          </select>
+        </label>
+        <div class="form-success" id="claimSuccess" hidden>
+          <i data-lucide="check-circle"></i>
+          <span>Claim request saved for demo review. Business owners can continue in BuiltLocal Pro.</span>
+        </div>
+        <a class="secondary-button full" href="./pro/">
+          <i data-lucide="layout-dashboard"></i>
+          Open Pro Dashboard
+        </a>
+        <button class="primary-button full" value="default" type="submit">
+          <i data-lucide="badge-check"></i>
+          Start Claim
+        </button>
+      </form>
+    </dialog>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

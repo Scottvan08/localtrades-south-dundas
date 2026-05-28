@@ -1,0 +1,15 @@
+# Local runtime output
+*.log
+
+# Local/generated review bundle
+localtrades-south-dundas-review.html
+
+# Research/raw discovery artifacts not needed for the public prototype
+yellowpages-candidates.csv
+yellowpages-accepted-additions.csv
+south-dundas-local-services-working-notes.md
+tools/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
