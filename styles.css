@@ -718,7 +718,6 @@ h2 {
   background: #ffffff;
   border: 1px solid transparent;
   border-radius: var(--radius);
-  cursor: pointer;
 }
 
 .listing-card + .listing-card {
@@ -813,10 +812,18 @@ h2 {
 }
 
 .listing-category {
+  display: block;
   margin-top: 9px;
   color: var(--green);
   font-size: 0.78rem;
   font-weight: 800;
+}
+
+.listing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .map-panel {
@@ -949,6 +956,10 @@ h2 {
   gap: 0;
   margin-top: 18px;
   overflow: hidden;
+}
+
+.profile-section[hidden] {
+  display: none;
 }
 
 .profile-media {
@@ -1135,6 +1146,55 @@ h2 {
 
 .profile-review-empty .secondary-button {
   width: max-content;
+}
+
+.contractor-page-shell {
+  padding-bottom: 110px;
+}
+
+.contractor-back-link {
+  margin-bottom: 14px;
+}
+
+.contractor-profile {
+  margin-top: 0;
+}
+
+.contractor-profile .profile-title-line h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  line-height: 1.02;
+}
+
+.contractor-primary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.contractor-related-reviews {
+  padding-top: 34px;
+}
+
+.contractor-sticky-actions {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 75;
+  display: none;
+  gap: 10px;
+  width: min(420px, calc(100vw - 32px));
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 18px 42px rgba(16, 27, 24, 0.18);
+  backdrop-filter: blur(18px);
+}
+
+.contractor-sticky-actions > * {
+  flex: 1 1 0;
 }
 
 .pro-dashboard {
@@ -2658,6 +2718,36 @@ h2 {
 
   .profile-actions > * {
     width: 100%;
+  }
+
+  .listing-actions {
+    flex-direction: column;
+  }
+
+  .listing-actions > * {
+    width: 100%;
+  }
+
+  .contractor-page-shell {
+    width: calc(100% - 24px);
+    padding-bottom: 118px;
+  }
+
+  .contractor-profile .profile-title-line h1 {
+    font-size: 2rem;
+  }
+
+  .contractor-primary-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .contractor-primary-actions > * {
+    width: 100%;
+  }
+
+  .contractor-sticky-actions {
+    display: flex;
   }
 
   .results-panel {

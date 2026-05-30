@@ -921,7 +921,7 @@ function renderResults() {
 
   list.innerHTML = pageRows
     .map((row) => `
-      <button class="listing-card${row.id === selectedId ? " active" : ""}" type="button" data-listing-id="${row.id}">
+      <article class="listing-card${row.id === selectedId ? " active" : ""}" data-listing-id="${row.id}">
         <span class="listing-thumb">
           <img src="${row.image}" alt="" loading="lazy" />
           <span class="status-badge">${row.availableToday ? "Available Today" : "Taking Requests"}</span>
@@ -940,8 +940,18 @@ function renderResults() {
             <span><i data-lucide="map-pin"></i>${escapeHtml(row.town || "South Dundas")}</span>
             <span><i data-lucide="badge-check"></i>${row.claimed ? "Claimed demo" : row.sourceVerified ? "Verified source" : "Needs source check"}</span>
           </span>
+          <span class="listing-actions">
+            <a class="secondary-button compact" href="${contractorUrl(row)}" data-view-profile="${escapeHtml(row.id)}">
+              <i data-lucide="user-round"></i>
+              View Profile
+            </a>
+            <button class="primary-button compact" type="button" data-open-direct-quote="${escapeHtml(row.id)}">
+              <i data-lucide="send"></i>
+              Request Quote
+            </button>
+          </span>
         </span>
-      </button>
+      </article>
     `)
     .join("");
 
@@ -994,6 +1004,10 @@ function selectListing(row, options = {}) {
   const floatingBack = $(".floating-back-search");
   if (floatingBack) floatingBack.hidden = false;
   initIcons();
+}
+
+function contractorUrl(row) {
+  return `contractor/?id=${encodeURIComponent(row.id)}`;
 }
 
 function updateProfile(row) {
@@ -1108,7 +1122,7 @@ function mapPopupHtml(row) {
       <span>${escapeHtml(reviewSummaryFor(row).label)}</span>
       <em>${escapeHtml(row.mapLabel)}</em>
       <span class="map-popup-actions">
-        <button type="button" data-popup-profile="${escapeHtml(row.id)}">View Profile</button>
+        <a href="${contractorUrl(row)}">View Profile</a>
         ${phoneHref ? `<a href="tel:${escapeHtml(phoneHref)}">Call</a>` : ""}
       </span>
     </div>
@@ -1388,6 +1402,7 @@ function wireEvents() {
   document.addEventListener("click", (event) => {
     const categoryButton = event.target.closest("[data-category]");
     const listingButton = event.target.closest("[data-listing-id]");
+    const viewProfileButton = event.target.closest("[data-view-profile]");
     const quoteButton = event.target.closest("[data-open-quote]");
     const directQuoteButton = event.target.closest("[data-open-direct-quote]");
     const matchingQuoteButton = event.target.closest("[data-open-matching-quote]");
@@ -1420,14 +1435,24 @@ function wireEvents() {
       scrollToResults();
     }
 
-    if (listingButton) {
+    if (listingButton && !viewProfileButton && !directQuoteButton) {
       const row = state.rows.find((item) => item.id === listingButton.dataset.listingId);
-      selectListing(row, { scrollTo: "profile" });
+      if (row) window.location.href = contractorUrl(row);
     }
 
     if (quoteButton) openQuoteDialog(state.selected ? "direct" : "matching");
 
-    if (directQuoteButton) openQuoteDialog("direct");
+    if (directQuoteButton) {
+      const rowId = directQuoteButton.dataset.openDirectQuote;
+      if (rowId) {
+        const row = state.rows.find((item) => item.id === rowId);
+        if (row) {
+          state.selected = row;
+          updateProfile(row);
+        }
+      }
+      openQuoteDialog("direct");
+    }
 
     if (matchingQuoteButton) openQuoteDialog("matching");
 

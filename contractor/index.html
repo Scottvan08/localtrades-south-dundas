@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contractor Profile | BuiltLocal SD&amp;G</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+    <script src="./contractor.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="../">
+        <span class="brand-mark"><i data-lucide="sprout"></i></span>
+        <span><strong>BuiltLocal</strong><small>SD&amp;G</small></span>
+      </a>
+      <nav>
+        <a href="../#directory">Directory</a>
+        <a href="../#reviews">Reviews</a>
+        <a href="../pro/">For Pros</a>
+      </nav>
+    </header>
+
+    <main class="page-shell contractor-page-shell">
+      <a class="secondary-button compact contractor-back-link" href="../#directory">
+        <i data-lucide="arrow-left"></i>
+        Back to directory
+      </a>
+
+      <section class="profile-section contractor-profile" id="contractorProfile" aria-labelledby="profileTitle">
+        <div class="profile-media">
+          <img id="profileImage" alt="" />
+        </div>
+        <div class="profile-detail">
+          <div class="profile-title-line">
+            <div>
+              <p class="section-kicker" id="profileKicker">Contractor profile</p>
+              <h1 id="profileTitle">Loading contractor</h1>
+              <p id="profileSubtitle">Profile details will appear here.</p>
+            </div>
+            <span class="verified-pill" id="verifiedPill">
+              <i data-lucide="badge-check"></i>
+              Verified
+            </span>
+          </div>
+
+          <div class="contractor-primary-actions">
+            <button class="primary-button" type="button" data-open-direct-quote>
+              <i data-lucide="send"></i>
+              Request a Quote
+            </button>
+            <a class="secondary-button" id="messageButton" href="#">
+              <i data-lucide="phone"></i>
+              Call
+            </a>
+            <button class="secondary-button" type="button" data-open-review>
+              <i data-lucide="message-square-plus"></i>
+              Add Review
+            </button>
+          </div>
+
+          <div class="metric-row">
+            <span><i data-lucide="message-square-heart"></i><strong id="profileReviews">No local reviews yet</strong></span>
+            <span><i data-lucide="clock"></i><strong id="profileResponse">22 min</strong> reply time</span>
+            <span><i data-lucide="map-pin"></i><strong id="profileDistance">0-30 km</strong> service area</span>
+          </div>
+
+          <div class="tag-row" id="profileTags"></div>
+
+          <div class="profile-facts">
+            <div>
+              <i data-lucide="phone"></i>
+              <span id="profilePhone">Public phone</span>
+            </div>
+            <div>
+              <i data-lucide="map"></i>
+              <span id="profileAreas">Serves SD&amp;G</span>
+            </div>
+            <div>
+              <i data-lucide="shield-check"></i>
+              <span id="profileClaim">Unclaimed public listing</span>
+            </div>
+            <div>
+              <i data-lucide="briefcase-business"></i>
+              <span id="profileJobs">Completed local jobs</span>
+            </div>
+          </div>
+
+          <div class="profile-reviews-list" id="profileReviewList"></div>
+        </div>
+      </section>
+
+      <section class="reviews contractor-related-reviews" aria-labelledby="contractorReviewsTitle">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Local reviews</p>
+            <h2 id="contractorReviewsTitle">What residents have said</h2>
+          </div>
+        </div>
+        <div class="review-grid" id="publicReviewGrid"></div>
+      </section>
+    </main>
+
+    <div class="contractor-sticky-actions" id="contractorStickyActions">
+      <a class="secondary-button" id="stickyCallButton" href="#">
+        <i data-lucide="phone"></i>
+        Call
+      </a>
+      <button class="primary-button" type="button" data-open-direct-quote>
+        <i data-lucide="send"></i>
+        Request Quote
+      </button>
+    </div>
+
+    <dialog class="quote-dialog lead-intake-dialog" id="quoteDialog">
+      <form class="quote-form lead-intake-form" id="quoteForm">
+        <div class="modal-head">
+          <div>
+            <p class="section-kicker">Direct request</p>
+            <h2 id="quoteTitle">Request a quote.</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Close quote form">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <p class="modal-note" id="quoteModeNote">This request goes directly to the selected contractor.</p>
+        <div class="intake-grid">
+          <label>
+            Service needed
+            <select id="quoteService" name="service">
+              <option>General Contractor</option>
+              <option>Home Repair</option>
+              <option>Plumbing</option>
+              <option>Electrical</option>
+              <option>Roofing</option>
+              <option>HVAC</option>
+              <option>Septic Services</option>
+              <option>Snow Removal</option>
+              <option>Landscaping</option>
+              <option>Excavation</option>
+              <option>Paving</option>
+            </select>
+          </label>
+          <label>
+            Town/community
+            <input id="quoteTown" name="town" type="text" list="sdgTowns" placeholder="Morrisburg, Ingleside, Alexandria..." />
+          </label>
+          <label class="wide-label">
+            Job details
+            <textarea id="quoteDetails" name="details" rows="4" placeholder="What do you need done?"></textarea>
+          </label>
+          <label>
+            Timing
+            <select id="quoteUrgency" name="urgency">
+              <option>ASAP</option>
+              <option>Within a week</option>
+              <option>Flexible</option>
+              <option>Emergency</option>
+            </select>
+          </label>
+          <label>
+            Property type
+            <select id="quoteProperty" name="propertyType">
+              <option>Home</option>
+              <option>Farm</option>
+              <option>Cottage</option>
+              <option>Business</option>
+            </select>
+          </label>
+          <label>
+            Your name
+            <input id="quoteName" name="name" type="text" placeholder="First name is fine" />
+          </label>
+          <label>
+            Contact
+            <input id="quoteContact" name="contact" type="text" placeholder="Phone or email" />
+          </label>
+          <label>
+            Preferred contact
+            <select id="quoteContactMethod" name="preferredContact">
+              <option>Text</option>
+              <option>Call</option>
+              <option>Email</option>
+            </select>
+          </label>
+          <label>
+            Best availability
+            <input id="quoteAvailability" name="availability" type="text" placeholder="Weekdays after 4, Saturday morning..." />
+          </label>
+        </div>
+        <div class="form-success" id="quoteSuccess" hidden>
+          <i data-lucide="check-circle"></i>
+          <span>Request sent. The contractor can review it in BuiltLocal Pro.</span>
+        </div>
+        <div class="form-error" id="quoteError" hidden>Could not reach the lead API, so this request was saved locally for review.</div>
+        <button class="primary-button full" type="submit">
+          <i data-lucide="send"></i>
+          Send Direct Request
+        </button>
+      </form>
+    </dialog>
+
+    <dialog class="quote-dialog review-dialog" id="reviewDialog">
+      <form class="quote-form review-form" id="reviewForm">
+        <div class="modal-head">
+          <div>
+            <p class="section-kicker">Local Review</p>
+            <h2>Add a BuiltLocal review</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Close review form">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <p class="modal-note">Reviews are checked before publishing. Your email stays private and is only used for moderation.</p>
+        <div class="intake-grid">
+          <label>Business reviewed<input id="reviewProviderName" name="providerName" type="text" readonly required /></label>
+          <label>Service used<input id="reviewServiceUsed" name="serviceUsed" type="text" list="serviceTypes" required /></label>
+          <label>Your first name<input id="reviewFirstName" name="firstName" type="text" required /></label>
+          <label>Your town/community<input id="reviewTown" name="town" type="text" list="sdgTowns" required /></label>
+          <label>Email<input id="reviewEmail" name="email" type="email" required /></label>
+          <label>Approximate month/year<input id="reviewWorkDate" name="workDate" type="text" placeholder="May 2026" /></label>
+          <label>
+            Rating
+            <select id="reviewRating" name="rating" required>
+              <option value="5">5 - Exceeded expectations</option>
+              <option value="4">4 - Good experience</option>
+              <option value="3">3 - Okay / mixed experience</option>
+              <option value="2">2 - Disappointed</option>
+              <option value="1">1 - Unsatisfied</option>
+            </select>
+          </label>
+          <label class="wide-label no-margin">Review<textarea id="reviewText" name="reviewText" rows="4" required></textarea></label>
+        </div>
+        <div class="form-error" id="reviewError" hidden>Could not submit this review yet.</div>
+        <button class="primary-button full" type="submit">
+          <i data-lucide="send"></i>
+          Submit Review
+        </button>
+      </form>
+    </dialog>
+
+    <datalist id="sdgTowns">
+      <option value="Morrisburg"></option>
+      <option value="Iroquois"></option>
+      <option value="Williamsburg"></option>
+      <option value="South Dundas"></option>
+      <option value="Winchester"></option>
+      <option value="Chesterville"></option>
+      <option value="North Dundas"></option>
+      <option value="Long Sault"></option>
+      <option value="Ingleside"></option>
+      <option value="South Stormont"></option>
+      <option value="Finch"></option>
+      <option value="Berwick"></option>
+      <option value="Avonmore"></option>
+      <option value="North Stormont"></option>
+      <option value="Cornwall"></option>
+      <option value="Lancaster"></option>
+      <option value="South Glengarry"></option>
+      <option value="Alexandria"></option>
+      <option value="Maxville"></option>
+      <option value="North Glengarry"></option>
+    </datalist>
+
+    <datalist id="serviceTypes">
+      <option value="Plumbing"></option>
+      <option value="Electrical"></option>
+      <option value="Roofing"></option>
+      <option value="HVAC"></option>
+      <option value="Septic Services"></option>
+      <option value="Snow Removal"></option>
+      <option value="General Contractor"></option>
+      <option value="Deck repair"></option>
+      <option value="Home repair"></option>
+      <option value="Landscaping"></option>
+      <option value="Excavation"></option>
+    </datalist>
+  </body>
+</html>
