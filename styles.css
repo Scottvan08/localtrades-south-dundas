@@ -732,6 +732,10 @@ h2 {
 
 .listing-thumb {
   position: relative;
+  display: block;
+  align-self: start;
+  aspect-ratio: 1 / 1;
+  width: 92px;
   min-height: 86px;
   overflow: hidden;
   background: #dde8e1;
@@ -3311,6 +3315,10 @@ h2 {
 
   .listing-card {
     grid-template-columns: 82px minmax(0, 1fr);
+  }
+
+  .listing-thumb {
+    width: 82px;
   }
 
   .listing-meta,
